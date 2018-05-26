@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"github.com/bitparx/clientapi/auth/storage/accounts"
 	"github.com/bitparx/clientapi/auth/storage/devices"
-	"encoding/json"
 	"github.com/bitparx/clientapi/auth"
+	"github.com/bitparx/clientapi/jsonerror"
 )
 
 // config route
@@ -19,7 +19,7 @@ type routerConfig struct {
 // encaspulated handlers are used to provide with database pointers
 
 func Setup(router *mux.Router, accountDB *accounts.Database, deviceDB *devices.Database) {
-	route:= routerConfig{map[string]bool{
+	route := routerConfig{map[string]bool{
 		"/logout": true,
 	}}
 	router.HandleFunc("/welcome", SayWelcome).Methods(http.MethodGet)
@@ -31,7 +31,6 @@ func Setup(router *mux.Router, accountDB *accounts.Database, deviceDB *devices.D
 	router.Use(route.authMiddleware(deviceDB))
 }
 
-
 // middleware for auth=true endpoints
 func (route routerConfig) authMiddleware(deviceDB *devices.Database) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
@@ -39,11 +38,17 @@ func (route routerConfig) authMiddleware(deviceDB *devices.Database) func(next h
 			if route.routeAuth[request.URL.Path] {
 				_, err := auth.VerifyAccessToken(request, deviceDB)
 				if err != nil {
-					json.NewEncoder(writer).Encode(err)
+					myerr, ok := err.JSON.(*jsonerror.ParxError)
+					if ok {
+						http.Error(writer, myerr.Err, err.Code)
+					}
 					return
+				} else {
+					next.ServeHTTP(writer, request)
 				}
+			} else {
+				next.ServeHTTP(writer, request)
 			}
-			next.ServeHTTP(writer, request)
 		})
 	}
 }

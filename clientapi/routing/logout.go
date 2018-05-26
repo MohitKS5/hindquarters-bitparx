@@ -10,6 +10,7 @@ import (
 	"github.com/bitparx/util"
 	"github.com/bitparx/clientapi/auth"
 	"encoding/json"
+	"fmt"
 )
 
 // Logout handles POST /logout, auth = true type endpoint
@@ -60,12 +61,14 @@ func LogoutAll(
 // LogoutHandler for router
 func LogoutHandler(deviceDB *devices.Database) http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
-		dev, err := auth.VerifyAccessToken(request, deviceDB)
-		if err!=nil{
-			json.NewEncoder(writer).Encode(err)
-			return
+		fmt.Println("logging out")
+		dev, _ := auth.VerifyAccessToken(request, deviceDB)
+		res := Logout(request, deviceDB, dev)
+		myerr, ok := res.JSON.(*jsonerror.ParxError)
+		if ok {
+			http.Error(writer, myerr.Err, res.Code)
+		} else {
+			json.NewEncoder(writer).Encode(res)
 		}
-		Logout(request, deviceDB, dev)
-		json.NewEncoder(writer).Encode(http.StatusOK)
 	}
 }

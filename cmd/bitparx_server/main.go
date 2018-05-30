@@ -14,11 +14,11 @@ func main()  {
 	fmt.Println("Starting server at http://localhost:12345...")
 
 	//databse setup
-	accountDB, deviceDB := storage.PostgresConnect()
+	accountDB, deviceDB, levelDB := storage.PostgresConnect()
 
 	// setting up router
 	router := mux.NewRouter()
-	routing.Setup(router, accountDB, deviceDB)
+	routing.Setup(router, accountDB, deviceDB, levelDB)
 
 	// starting server while setting cors for angular
 	log.Fatal(http.ListenAndServe(":12345", handlers.CORS(

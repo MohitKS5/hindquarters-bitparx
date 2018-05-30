@@ -12,6 +12,8 @@ import (
 	"log"
 	"encoding/json"
 	"github.com/bitparx/clientapi/auth/storage/devices"
+	"github.com/bitparx/clientapi/auth/storage/levels"
+	"github.com/bitparx/clientapi/auth/authtypes"
 )
 
 type loginFlows struct {
@@ -34,17 +36,18 @@ type loginResponse struct {
 	AccessToken string `json:"access_token"`
 	Server      string `json:"server"`
 	DeviceID    string `json:"device_id"`
+	Levels		authtypes.Levels `json:"accountlevels"`
 }
 
 // Login implements GET and POST /login
 func Login(
-	req *http.Request, accountDB *accounts.Database, deviceDB *devices.Database) util.JSONResponse {
+	req *http.Request, accountDB *accounts.Database, deviceDB *devices.Database, levelDB *levels.Database) util.JSONResponse {
 	if req.Method == http.MethodGet { // TODO: support other forms of login other than password, depending on config options
 		return util.JSONResponse{
-			Code: http.StatusForbidden,
+			Code: http.StatusBadRequest,
 			JSON: util.JSONResponse{
 				Code: 403,
-				JSON: "please login",
+				JSON: jsonerror.Forbidden("login from official website"),
 			},
 		}
 	} else if req.Method == http.MethodPost {
@@ -96,12 +99,22 @@ func Login(
 			}
 		}
 
+		lev, err:= levelDB.GetAccountByLocalpart(req.Context(), username)
+		if err != nil {
+			return util.JSONResponse{
+				Code: http.StatusInternalServerError,
+				JSON: jsonerror.Unknown("failed to retrieve levels: " + err.Error()),
+			}
+		}
+
 		return util.JSONResponse{
 			Code: http.StatusOK,
 			JSON: loginResponse{
 				UserID:      acc.UserID,
 				AccessToken: token,
 				DeviceID:    dev.ID,
+				Levels: 	 lev.Access,
+				Server:		 acc.ServerName,
 			},
 		}
 	}
@@ -116,10 +129,10 @@ func ParseUsernameParam(username string) (string, error) {
 	return username, nil
 }
 
-func LoginHandler(accountDB *accounts.Database, deviceDB *devices.Database) http.HandlerFunc {
+func LoginHandler(accountDB *accounts.Database, deviceDB *devices.Database, levelDB *levels.Database) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Println(r.URL.Path+"blah")
-		res := Login(r, accountDB, deviceDB)
+		res := Login(r, accountDB, deviceDB, levelDB)
 		err, ok := res.JSON.(*jsonerror.ParxError)
 		if  ok {
 			http.Error(w, err.Err, res.Code)

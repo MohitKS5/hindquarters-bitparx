@@ -24,6 +24,7 @@ import (
 	"log"
 	"encoding/json"
 	"github.com/bitparx/clientapi/auth/storage/devices"
+	"github.com/bitparx/clientapi/auth/storage/levels"
 )
 
 const (
@@ -162,6 +163,7 @@ func validatePassword(password string) *util.JSONResponse {
 	}
 	return nil
 }
+
 // todo setup google recapcha api keys
 //// validateRecaptcha returns an error response if the captcha response is invalid
 //func validateRecaptcha(
@@ -234,6 +236,7 @@ func Register(
 	req *http.Request,
 	accountDB *accounts.Database,
 	deviceDB *devices.Database,
+	levelDB *levels.Database,
 	cfg *config.Bitparx,
 ) util.JSONResponse {
 
@@ -277,7 +280,7 @@ func Register(
 	//	"session_id": r.Auth.Session,
 	//}).Info("Processing registration request")
 
-	return handleRegistrationFlow(req, r, sessionID, cfg, accountDB, deviceDB)
+	return handleRegistrationFlow(req, r, sessionID, cfg, accountDB, deviceDB, levelDB)
 }
 
 // handleRegistrationFlow will direct and complete registration flow stages
@@ -289,6 +292,7 @@ func handleRegistrationFlow(
 	cfg *config.Bitparx,
 	accountDB *accounts.Database,
 	deviceDB *devices.Database,
+	levelDB *levels.Database,
 ) util.JSONResponse {
 	// TODO: Shared secret registration (create user scripts)
 	// TODO: Enable registration config flag
@@ -340,7 +344,7 @@ func handleRegistrationFlow(
 	// A response with current registration flow and remaining available methods
 	// will be returned if a flow has not been successfully completed yet
 	return checkAndCompleteFlow(sessions.GetCompletedStages(sessionID),
-		req, r, sessionID, cfg, accountDB, deviceDB)
+		req, r, sessionID, cfg, accountDB, deviceDB, levelDB)
 }
 
 // checkAndCompleteFlow checks if a given registration flow is completed given
@@ -354,11 +358,12 @@ func checkAndCompleteFlow(
 	cfg *config.Bitparx,
 	accountDB *accounts.Database,
 	deviceDB *devices.Database,
+	levelDB *levels.Database,
 ) util.JSONResponse {
 	if checkFlowCompleted(flow, cfg.Derived.Registration.Flows) {
 		// This flow was completed, registration can continue
 		println("flow completed")
-		return completeRegistration(req.Context(), accountDB, deviceDB,
+		return completeRegistration(req.Context(), accountDB, deviceDB, levelDB,
 			r.Username, r.Password, "", r.InitialDisplayName)
 	}
 
@@ -375,6 +380,7 @@ func completeRegistration(
 	ctx context.Context,
 	accountDB *accounts.Database,
 	deviceDB *devices.Database,
+	levelDB *levels.Database,
 	username, password, appserviceID string,
 	displayName *string,
 ) util.JSONResponse {
@@ -419,6 +425,14 @@ func completeRegistration(
 		return util.JSONResponse{
 			Code: http.StatusInternalServerError,
 			JSON: jsonerror.Unknown("failed to create device: " + err.Error()),
+		}
+	}
+
+	err = levelDB.CreateLevel(ctx, username)
+	if err != nil {
+		return util.JSONResponse{
+			Code: http.StatusInternalServerError,
+			JSON: jsonerror.Unknown("failed to create levels: " + err.Error()),
 		}
 	}
 
@@ -569,11 +583,16 @@ func RegisterAvailable(
 	}
 }
 
-func RegisterHandler(accountDB *accounts.Database, deviceDB *devices.Database) http.HandlerFunc {
+func RegisterHandler(accountDB *accounts.Database, deviceDB *devices.Database, levelDB *levels.Database) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Println(r.URL.Path)
-		cfg:= config.LoadConfig()
-		res := Register(r, accountDB, deviceDB, cfg)
-		json.NewEncoder(w).Encode(res)
+		cfg := config.LoadConfig()
+		res := Register(r, accountDB, deviceDB, levelDB, cfg)
+		err, ok := res.JSON.(*jsonerror.ParxError)
+		if ok {
+			http.Error(w, err.Err, res.Code)
+		} else {
+			json.NewEncoder(w).Encode(res)
+		}
 	}
 }

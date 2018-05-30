@@ -1,4 +1,3 @@
-
 package accounts
 
 import (
@@ -18,9 +17,7 @@ CREATE TABLE IF NOT EXISTS account_accounts (
     -- When this account was first created, as a unix timestamp (ms resolution).
     created_ts BIGINT NOT NULL,
     -- The password hash for this account. Can be NULL if this is a passwordless account.
-    password_hash TEXT,
-    -- Identifies which Application Service this account belongs to, if any.
-    appservice_id TEXT
+    password_hash TEXT
     -- TODO:
     -- is_guest, is_admin, upgraded_ts, devices, any email reset stuff?
 );
@@ -38,10 +35,10 @@ const selectPasswordHashSQL = "" +
 // TODO: Update password
 
 type accountsStatements struct {
-	insertAccountStmt            *sql.Stmt
+	insertAccountStmt           *sql.Stmt
 	selectAccountByUsernameStmt *sql.Stmt
-	selectPasswordHashStmt       *sql.Stmt
-	serverName                   string
+	selectPasswordHashStmt      *sql.Stmt
+	serverName                  string
 }
 
 func (s *accountsStatements) prepare(db *sql.DB, server string) (err error) {
@@ -82,9 +79,9 @@ func (s *accountsStatements) insertAccount(
 	}
 
 	return &authtypes.Account{
-		Username:    username,
-		UserID:       makeUserID(username, s.serverName),
-		ServerName:   s.serverName,
+		Username:   username,
+		UserID:     makeUserID(username, s.serverName),
+		ServerName: s.serverName,
 	}, nil
 }
 
@@ -103,10 +100,9 @@ func (s *accountsStatements) selectAccountByUsername(
 	var acc authtypes.Account
 	stmt := s.selectAccountByUsernameStmt
 	err := stmt.QueryRowContext(ctx, username).Scan(&acc.Username)
-	if err != nil {
-		acc.UserID = makeUserID(username, s.serverName)
-		acc.ServerName = s.serverName
-	}
+	acc.UserID = makeUserID(username, s.serverName)
+	acc.ServerName = s.serverName
+	fmt.Println(acc)
 	return &acc, err
 }
 

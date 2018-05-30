@@ -7,6 +7,7 @@ import (
 	"github.com/bitparx/clientapi/auth/storage/devices"
 	"github.com/bitparx/clientapi/auth"
 	"github.com/bitparx/clientapi/jsonerror"
+	"github.com/bitparx/clientapi/auth/storage/levels"
 )
 
 // config route
@@ -18,16 +19,20 @@ type routerConfig struct {
 // routes comfigured here usign gorilla/mux
 // encaspulated handlers are used to provide with database pointers
 
-func Setup(router *mux.Router, accountDB *accounts.Database, deviceDB *devices.Database) {
+func Setup(router *mux.Router, accountDB *accounts.Database, deviceDB *devices.Database, levelDB *levels.Database) {
 	route := routerConfig{map[string]bool{
 		"/logout": true,
+		"/levels": false,
 	}}
 	router.HandleFunc("/welcome", SayWelcome).Methods(http.MethodGet)
-	router.HandleFunc("/login", LoginHandler(accountDB, deviceDB)).Methods(http.MethodPost)
-	router.HandleFunc("/register", RegisterHandler(accountDB, deviceDB)).Methods(http.MethodPost)
+	router.HandleFunc("/login", LoginHandler(accountDB, deviceDB, levelDB)).Methods(http.MethodPost)
+	router.HandleFunc("/register", RegisterHandler(accountDB, deviceDB, levelDB)).Methods(http.MethodPost)
 
 	// routes with auth = true
 	router.HandleFunc("/logout", LogoutHandler(deviceDB)).Methods(http.MethodPost)
+	router.HandleFunc("/levels", RouteLevelsHandler(levelDB, false, GetAllAccountLevels)).Methods(http.MethodPost)
+	router.HandleFunc("/levels/{levelname}/{localpart}", RouteLevelsHandler(levelDB, true, UpdateLevelByLocalpart)).Methods(http.MethodPut)
+	router.HandleFunc("/levels/{levelname}/{localpart}", RouteLevelsHandler(levelDB, false,  UpdateLevelByLocalpart)).Methods(http.MethodDelete)
 	router.Use(route.authMiddleware(deviceDB))
 }
 

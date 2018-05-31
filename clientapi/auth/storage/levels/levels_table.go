@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"github.com/bitparx/common"
 	"github.com/bitparx/clientapi/auth/authtypes"
-	"fmt"
 )
 
 const levelsSchema = `
@@ -14,7 +13,7 @@ CREATE TABLE IF NOT EXISTS account_levels (
     -- The user ID username for this device. This is preferable to storing the full user_id
     -- as it is smaller, makes it clearer that we only manage accounts for our own users, and may make
     -- migration to different domain names easier.
-    username TEXT NOT NULL PRIMARY KEY REFERENCES ACCOUNT_ACCOUNTS(username) ON DELETE CASCADE,
+    username TEXT NOT NULL PRIMARY KEY,
     -- When this level was first assigned on the network, as a unix timestamp (ms resolution).
     -- assigned_ts BIGINT NOT NULL,
     -- Who approved the level
@@ -60,49 +59,40 @@ type levelsStatements struct {
 	updateLevelAdminStmt         *sql.Stmt
 	updateLevelModeratorStmt     *sql.Stmt
 	deleteAccountStmt            *sql.Stmt
-	selectAllAccountsStmt		 *sql.Stmt
+	selectAllAccountsStmt        *sql.Stmt
 	serverName                   string
 }
 
 func (s *levelsStatements) prepare(db *sql.DB, server string) (err error) {
 	_, err = db.Exec(levelsSchema)
 	if err != nil {
-		fmt.Println("error in schema")
 		return
 	}
 	if s.insertLevelStmt, err = db.Prepare(insertLevelSQL); err != nil {
-		fmt.Println("error in 1")
 		return
 	}
 	if s.selectAccountByLocalpartstmt, err = db.Prepare(selectAccountByLocalpartSQL); err != nil {
-		fmt.Println("error in 2")
 		return
 	}
 	if s.selectAccountByAdminstmt, err = db.Prepare(selectAccountsByAdminSQL); err != nil {
-		fmt.Println("error in 3")
 		return
 	}
 	if s.selectLocalpartsByAdminstmt, err = db.Prepare(selectLocalpartsByAdminSQL); err != nil {
-		fmt.Println("error in 4")
 		return
 	}
 	if s.updateLevelAdminStmt, err = db.Prepare(updateLevelAdminSQL); err != nil {
-		fmt.Println("error in 5")
 		return
 	}
 
 	if s.updateLevelModeratorStmt, err = db.Prepare(updateLevelModeratorSQL); err != nil {
-		fmt.Println("error in 6")
 		return
 	}
 
 	if s.deleteAccountStmt, err = db.Prepare(deleteAccountSQL); err != nil {
-		fmt.Println("error in 7")
 		return
 	}
 
 	if s.selectAllAccountsStmt, err = db.Prepare(selectAllAccountsStmt); err != nil {
-		fmt.Println("error in 8")
 		return
 	}
 	s.serverName = server
@@ -120,19 +110,17 @@ func (s *levelsStatements) insertAccount(
 	return nil
 }
 
-
 func (s *levelsStatements) selectAccountByLocalpart(
 	ctx context.Context, localpart string,
 ) (*authtypes.LevelsData, error) {
 	var acc authtypes.LevelsData
 	stmt := s.selectAccountByLocalpartstmt
 	err := stmt.QueryRowContext(ctx, localpart).Scan(&acc.Username, &acc.Access.Admin, &acc.Access.Moderator)
-	if err!=nil {
+	if err != nil {
 		return nil, err
 	}
 	return &acc, err
 }
-
 
 func (s *levelsStatements) deleteDevicesByLocalpart(
 	ctx context.Context, txn *sql.Tx, localpart string,
@@ -146,7 +134,7 @@ func (s *levelsStatements) updateLevelAdmin(
 	ctx context.Context, txn *sql.Tx, admin bool, localpart string) error {
 	stmt := common.TxStmt(txn, s.updateLevelAdminStmt)
 	res, err := stmt.ExecContext(ctx, admin, localpart)
-	if rowsAffected,_:=res.RowsAffected(); rowsAffected == 0 {
+	if rowsAffected, _ := res.RowsAffected(); rowsAffected == 0 {
 		return sql.ErrNoRows
 	}
 	return err
@@ -156,12 +144,11 @@ func (s *levelsStatements) updateLevelModerator(
 	ctx context.Context, txn *sql.Tx, moderator bool, localpart string) error {
 	stmt := common.TxStmt(txn, s.updateLevelModeratorStmt)
 	res, err := stmt.ExecContext(ctx, moderator, localpart)
-	if rowsAffected,_:=res.RowsAffected(); rowsAffected == 0 {
+	if rowsAffected, _ := res.RowsAffected(); rowsAffected == 0 {
 		return sql.ErrNoRows
 	}
 	return err
 }
-
 
 func (s *levelsStatements) selectLocalpartsByAdmin(
 	ctx context.Context, admin bool,
@@ -207,4 +194,3 @@ func (s *levelsStatements) selectAllAccounts(
 
 	return accounts, nil
 }
-

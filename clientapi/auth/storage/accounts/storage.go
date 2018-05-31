@@ -83,7 +83,7 @@ func (d *Database) SetDisplayName(
 // for this account. If the
 // account already exists, it will return nil, nil.
 func (d *Database) CreateAccount(
-	ctx context.Context, username, plaintextPassword, appserviceID string,
+	ctx context.Context, username, plaintextPassword string,
 ) (*authtypes.Account, error) {
 	var err error
 
@@ -101,7 +101,7 @@ func (d *Database) CreateAccount(
 		}
 		return nil, err
 	}
-	return d.accounts.insertAccount(ctx, username, hash, appserviceID)
+	return d.accounts.insertAccount(ctx, username, hash)
 }
 
 func hashPassword(plaintext string) (hash string, err error) {

@@ -6,7 +6,7 @@ import (
 	"github.com/bitparx/clientapi/auth/storage/accounts"
 	"github.com/bitparx/clientapi/auth/storage/devices"
 	"github.com/bitparx/clientapi/auth"
-	"github.com/bitparx/clientapi/jsonerror"
+	"github.com/bitparx/common/jsonerror"
 	"github.com/bitparx/clientapi/auth/storage/levels"
 )
 

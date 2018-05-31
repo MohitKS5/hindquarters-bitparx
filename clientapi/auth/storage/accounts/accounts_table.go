@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS account_accounts (
 `
 
 const insertAccountSQL = "" +
-	"INSERT INTO account_accounts(username, created_ts, password_hash, appservice_id) VALUES ($1, $2, $3, $4)"
+	"INSERT INTO account_accounts(username, created_ts, password_hash) VALUES ($1, $2, $3)"
 
 const selectAccountByUsernameSQL = "" +
 	"SELECT username FROM account_accounts WHERE username = $1"
@@ -63,17 +63,12 @@ func (s *accountsStatements) prepare(db *sql.DB, server string) (err error) {
 // Returns an error if this account already exists. Returns the account
 // on success.
 func (s *accountsStatements) insertAccount(
-	ctx context.Context, username, hash, appserviceID string,
-) (*authtypes.Account, error) {
+	ctx context.Context, username, hash string) (*authtypes.Account, error) {
 	createdTimeMS := time.Now().UnixNano() / 1000000
 	stmt := s.insertAccountStmt
 
 	var err error
-	if appserviceID == "" {
-		_, err = stmt.ExecContext(ctx, username, createdTimeMS, hash, nil)
-	} else {
-		_, err = stmt.ExecContext(ctx, username, createdTimeMS, hash, appserviceID)
-	}
+	_, err = stmt.ExecContext(ctx, username, createdTimeMS, hash)
 	if err != nil {
 		return nil, err
 	}

@@ -17,9 +17,8 @@ import (
 	"github.com/bitparx/clientapi/auth"
 	"github.com/bitparx/clientapi/auth/authtypes"
 	"github.com/bitparx/clientapi/auth/storage/accounts"
-	//"github.com/bitparx/clientapi/auth/storage/devices"
 	"github.com/bitparx/clientapi/httputil"
-	"github.com/bitparx/clientapi/jsonerror"
+	"github.com/bitparx/common/jsonerror"
 	"github.com/bitparx/util"
 	"log"
 	"encoding/json"
@@ -364,7 +363,7 @@ func checkAndCompleteFlow(
 		// This flow was completed, registration can continue
 		println("flow completed")
 		return completeRegistration(req.Context(), accountDB, deviceDB, levelDB,
-			r.Username, r.Password, "", r.InitialDisplayName)
+			r.Username, r.Password, r.InitialDisplayName)
 	}
 
 	// There are still more stages to complete.
@@ -381,7 +380,7 @@ func completeRegistration(
 	accountDB *accounts.Database,
 	deviceDB *devices.Database,
 	levelDB *levels.Database,
-	username, password, appserviceID string,
+	username, password string,
 	displayName *string,
 ) util.JSONResponse {
 	if username == "" {
@@ -391,14 +390,23 @@ func completeRegistration(
 		}
 	}
 	// Blank passwords are only allowed by registered application services
-	if password == "" && appserviceID == "" {
+	if password == "" {
 		return util.JSONResponse{
 			Code: http.StatusBadRequest,
 			JSON: jsonerror.BadJSON("missing password"),
 		}
 	}
 
-	acc, err := accountDB.CreateAccount(ctx, username, password, appserviceID)
+	// todo handle errors properly, dont send sql errors to server
+	err := levelDB.CreateLevel(ctx, username)
+	if err != nil {
+		return util.JSONResponse{
+			Code: http.StatusInternalServerError,
+			JSON: jsonerror.Unknown("failed to create levels: " + err.Error()),
+		}
+	}
+
+	acc, err := accountDB.CreateAccount(ctx, username, password)
 	if err != nil {
 		return util.JSONResponse{
 			Code: http.StatusInternalServerError,
@@ -425,14 +433,6 @@ func completeRegistration(
 		return util.JSONResponse{
 			Code: http.StatusInternalServerError,
 			JSON: jsonerror.Unknown("failed to create device: " + err.Error()),
-		}
-	}
-
-	err = levelDB.CreateLevel(ctx, username)
-	if err != nil {
-		return util.JSONResponse{
-			Code: http.StatusInternalServerError,
-			JSON: jsonerror.Unknown("failed to create levels: " + err.Error()),
 		}
 	}
 

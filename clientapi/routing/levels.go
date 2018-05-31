@@ -5,7 +5,7 @@ import (
 	"github.com/bitparx/clientapi/auth/storage/levels"
 	"database/sql"
 	"github.com/bitparx/util"
-	"github.com/bitparx/clientapi/jsonerror"
+	"github.com/bitparx/common/jsonerror"
 	"log"
 	"encoding/json"
 	"github.com/gorilla/mux"

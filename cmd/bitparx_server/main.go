@@ -7,14 +7,14 @@ import (
 	"net/http"
 	"github.com/gorilla/handlers"
 	"github.com/bitparx/clientapi/routing"
-	"github.com/bitparx/common/storage"
+	"github.com/bitparx/clientapi"
 )
 
-func main()  {
+func main() {
 	fmt.Println("Starting server at http://localhost:12345...")
 
 	//databse setup
-	accountDB, deviceDB, levelDB := storage.PostgresConnect()
+	accountDB, deviceDB, levelDB := clientapi.PostgresConnect()
 
 	// setting up router
 	router := mux.NewRouter()

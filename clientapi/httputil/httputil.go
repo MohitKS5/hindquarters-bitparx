@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/bitparx/clientapi/jsonerror"
+	"github.com/bitparx/common/jsonerror"
 	"github.com/bitparx/util"
 	"fmt"
 )

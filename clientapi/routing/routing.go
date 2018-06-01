@@ -8,6 +8,8 @@ import (
 	"github.com/bitparx/clientapi/auth"
 	"github.com/bitparx/common/jsonerror"
 	"github.com/bitparx/clientapi/auth/storage/levels"
+	"database/sql"
+	"github.com/gorilla/context"
 )
 
 // config route
@@ -21,8 +23,9 @@ type routerConfig struct {
 
 func Setup(router *mux.Router, accountDB *accounts.Database, deviceDB *devices.Database, levelDB *levels.Database) {
 	route := routerConfig{map[string]bool{
-		"/logout": true,
-		"/levels": false,
+		"/login":    true,
+		"/register": true,
+		"/welcome":  true,
 	}}
 	router.HandleFunc("/welcome", SayWelcome).Methods(http.MethodGet)
 	router.HandleFunc("/login", LoginHandler(accountDB, deviceDB, levelDB)).Methods(http.MethodPost)
@@ -30,9 +33,10 @@ func Setup(router *mux.Router, accountDB *accounts.Database, deviceDB *devices.D
 
 	// routes with auth = true
 	router.HandleFunc("/logout", LogoutHandler(deviceDB)).Methods(http.MethodPost)
-	router.HandleFunc("/levels", RouteLevelsHandler(levelDB, false, GetAllAccountLevels)).Methods(http.MethodPost)
-	router.HandleFunc("/levels/{levelname}/{localpart}", RouteLevelsHandler(levelDB, true, UpdateLevelByLocalpart)).Methods(http.MethodPut)
-	router.HandleFunc("/levels/{levelname}/{localpart}", RouteLevelsHandler(levelDB, false,  UpdateLevelByLocalpart)).Methods(http.MethodDelete)
+	router.HandleFunc("/levels", RouteLevelsHandler(levelDB, sql.NullBool{false, true}, GetAllAccountLevels)).Methods(http.MethodPost)
+	router.HandleFunc("/levels/{levelname}", RouteLevelsHandler(levelDB, sql.NullBool{}, RequestLevelByLocalpart)).Methods(http.MethodPost)
+	router.HandleFunc("/levels/{levelname}/{localpart}", RouteLevelsHandler(levelDB, sql.NullBool{true, true}, SetLevelByLocalpart)).Methods(http.MethodPut)
+	router.HandleFunc("/levels/{levelname}/{localpart}", RouteLevelsHandler(levelDB, sql.NullBool{false, true}, SetLevelByLocalpart)).Methods(http.MethodDelete)
 	router.Use(route.authMiddleware(deviceDB))
 }
 
@@ -41,7 +45,9 @@ func (route routerConfig) authMiddleware(deviceDB *devices.Database) func(next h
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 			if route.routeAuth[request.URL.Path] {
-				_, err := auth.VerifyAccessToken(request, deviceDB)
+				next.ServeHTTP(writer, request)
+			} else {
+				dev, err := auth.VerifyAccessToken(request, deviceDB)
 				if err != nil {
 					myerr, ok := err.JSON.(*jsonerror.ParxError)
 					if ok {
@@ -49,10 +55,9 @@ func (route routerConfig) authMiddleware(deviceDB *devices.Database) func(next h
 					}
 					return
 				} else {
+					context.Set(request, "localpart", dev.UserID)
 					next.ServeHTTP(writer, request)
 				}
-			} else {
-				next.ServeHTTP(writer, request)
 			}
 		})
 	}

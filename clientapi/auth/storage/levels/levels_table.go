@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"github.com/bitparx/common"
 	"github.com/bitparx/clientapi/auth/authtypes"
+	"fmt"
 )
 
 const levelsSchema = `
@@ -131,9 +132,10 @@ func (s *levelsStatements) deleteDevicesByLocalpart(
 }
 
 func (s *levelsStatements) updateLevelAdmin(
-	ctx context.Context, txn *sql.Tx, admin bool, localpart string) error {
+	ctx context.Context, txn *sql.Tx, admin sql.NullBool, localpart string) error {
 	stmt := common.TxStmt(txn, s.updateLevelAdminStmt)
 	res, err := stmt.ExecContext(ctx, admin, localpart)
+	fmt.Println("reached database"+localpart)
 	if rowsAffected, _ := res.RowsAffected(); rowsAffected == 0 {
 		return sql.ErrNoRows
 	}
@@ -141,7 +143,7 @@ func (s *levelsStatements) updateLevelAdmin(
 }
 
 func (s *levelsStatements) updateLevelModerator(
-	ctx context.Context, txn *sql.Tx, moderator bool, localpart string) error {
+	ctx context.Context, txn *sql.Tx, moderator sql.NullBool, localpart string) error {
 	stmt := common.TxStmt(txn, s.updateLevelModeratorStmt)
 	res, err := stmt.ExecContext(ctx, moderator, localpart)
 	if rowsAffected, _ := res.RowsAffected(); rowsAffected == 0 {

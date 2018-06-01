@@ -53,14 +53,14 @@ func (d *Database) GetAllAccounts(
 }
 
 // handle PUT /levels/admin/${localpart}
-func (d *Database) UpdateLevelAdmin(ctx context.Context, admin bool, localpart string) error {
+func (d *Database) UpdateLevelAdmin(ctx context.Context, admin sql.NullBool, localpart string) error {
 	return common.WithTransaction(d.db, func(txn *sql.Tx) error {
 		return d.accounts.updateLevelAdmin(ctx, txn, admin, localpart)
 	})
 }
 
 // handle PUT /levels/moderator/${localpart}
-func (d *Database) UpdateLevelModerator(ctx context.Context, moderator bool, localpart string) error {
+func (d *Database) UpdateLevelModerator(ctx context.Context, moderator sql.NullBool, localpart string) error {
 	return common.WithTransaction(d.db, func(txn *sql.Tx) error {
 		return d.accounts.updateLevelModerator(ctx, txn, moderator, localpart)
 	})

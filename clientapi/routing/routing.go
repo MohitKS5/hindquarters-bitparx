@@ -14,7 +14,7 @@ import (
 
 // config route
 type routerConfig struct {
-	// map for endpoints with auth = true
+	// map for endpoints with auth bypass = true
 	routeAuth map[string]bool
 }
 
@@ -26,11 +26,12 @@ func Setup(router *mux.Router, accountDB *accounts.Database, deviceDB *devices.D
 		"/login":    true,
 		"/register": true,
 		"/welcome":  true,
-		"/accounts": true,
+		"/welcome/first":  true,
 	}}
 	router.HandleFunc("/welcome", SayWelcome).Methods(http.MethodGet)
 	router.HandleFunc("/login", LoginHandler(accountDB, deviceDB, levelDB)).Methods(http.MethodPost)
 	router.HandleFunc("/register", RegisterHandler(accountDB, deviceDB, levelDB)).Methods(http.MethodPost)
+	router.HandleFunc("/welcome/first", RouteLevelsHandler(levelDB, sql.NullBool{true, true}, SetFirstUserLevel)).Methods(http.MethodGet)
 
 	// routes with auth = true
 	router.HandleFunc("/logout", LogoutHandler(deviceDB)).Methods(http.MethodPost)

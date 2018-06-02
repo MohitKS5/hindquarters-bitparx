@@ -59,6 +59,18 @@ func RequestLevelByLocalpart(r *http.Request, levelDB *levels.Database, level sq
 	return UpdateLevelByLocalpart(r, levelDB, level, localpart, levelToUpdate)
 }
 
+// sets first user an admin
+func SetFirstUserLevel(r *http.Request, levelDB *levels.Database, level sql.NullBool, localpart, levelToUpdate string) *util.JSONResponse {
+	accounts,_ := levelDB.GetAllAccounts(r.Context())
+	if len(accounts) != 1 {
+		return &util.JSONResponse{
+			Code: http.StatusForbidden,
+		}
+	}
+	return UpdateLevelByLocalpart(r, levelDB, level, accounts[0].Username, "admin")
+}
+
+
 func UpdateLevelByLocalpart(r *http.Request, levelDB *levels.Database, level sql.NullBool, localpart, levelToUpdate string) *util.JSONResponse {
 	var err error = nil
 	switch levelToUpdate {

@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/bitparx/clientapi/auth/authtypes"
+	"github.com/bitparx/common/storage"
 )
 
 const accountsSchema = `
@@ -32,12 +33,17 @@ const selectAccountByUsernameSQL = "" +
 const selectPasswordHashSQL = "" +
 	"SELECT password_hash FROM account_accounts WHERE username = $1"
 
+const selectAllAccountsSQL = "" +
+	"SELECT A.username, created_ts, display_name, avatar_url FROM account_accounts A " +
+	"INNER JOIN account_profiles B ON A.username = B.username"
+
 // TODO: Update password
 
 type accountsStatements struct {
 	insertAccountStmt           *sql.Stmt
 	selectAccountByUsernameStmt *sql.Stmt
 	selectPasswordHashStmt      *sql.Stmt
+	selectAllAccountsStmt       *sql.Stmt
 	serverName                  string
 }
 
@@ -53,6 +59,9 @@ func (s *accountsStatements) prepare(db *sql.DB, server string) (err error) {
 		return
 	}
 	if s.selectPasswordHashStmt, err = db.Prepare(selectPasswordHashSQL); err != nil {
+		return
+	}
+	if s.selectAllAccountsStmt, err = db.Prepare(selectAllAccountsSQL); err != nil {
 		return
 	}
 	s.serverName = server
@@ -99,6 +108,25 @@ func (s *accountsStatements) selectAccountByUsername(
 	acc.ServerName = s.serverName
 	fmt.Println(acc)
 	return &acc, err
+}
+
+// returns all accounts
+func (s *accountsStatements) selectAllAccounts(ctx context.Context) (accounts []authtypes.Account, err error) {
+	accounts = []authtypes.Account{}
+	rows, err := s.selectAllAccountsStmt.QueryContext(ctx)
+	if err != nil {
+		return
+	}
+	for rows.Next() {
+		acc := authtypes.Account{}
+		err = rows.Scan(&acc.Username, &acc.Created, &acc.Profile.DisplayName, &acc.Profile.AvatarURL)
+		if err != nil {
+			return
+		}
+		acc.UserID = makeUserID(acc.Username, storage.SERVER_NAME)
+		accounts = append(accounts, acc)
+	}
+	return
 }
 
 // make userID by concatenating username:servername

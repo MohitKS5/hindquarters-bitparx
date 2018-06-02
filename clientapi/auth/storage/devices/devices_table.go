@@ -9,6 +9,7 @@ import (
 	"github.com/bitparx/common"
 
 	"github.com/bitparx/clientapi/auth/authtypes"
+	"github.com/bitparx/common/storage"
 )
 
 const devicesSchema = `
@@ -47,6 +48,9 @@ const selectDeviceByIDSQL = "" +
 const selectDevicesByLocalpartSQL = "" +
 	"SELECT device_id, display_name FROM device_devices WHERE localpart = $1"
 
+const selectAllDevicesSQL = "" +
+	"SELECT device_id, display_name, created_ts, localpart FROM device_devices"
+
 const updateDeviceNameSQL = "" +
 	"UPDATE device_devices SET display_name = $1 WHERE localpart = $2 AND device_id = $3"
 
@@ -64,6 +68,7 @@ type devicesStatements struct {
 	updateDeviceNameStmt         *sql.Stmt
 	deleteDeviceStmt             *sql.Stmt
 	deleteDevicesByLocalpartStmt *sql.Stmt
+	selectAllDevicesStmt         *sql.Stmt
 	serverName                   string
 }
 
@@ -82,6 +87,9 @@ func (s *devicesStatements) prepare(db *sql.DB, server string) (err error) {
 		return
 	}
 	if s.selectDevicesByLocalpartStmt, err = db.Prepare(selectDevicesByLocalpartSQL); err != nil {
+		return
+	}
+	if s.selectAllDevicesStmt, err = db.Prepare(selectAllDevicesSQL); err != nil {
 		return
 	}
 	if s.updateDeviceNameStmt, err = db.Prepare(updateDeviceNameSQL); err != nil {
@@ -192,6 +200,27 @@ func (s *devicesStatements) selectDevicesByLocalpart(
 	return devices, nil
 }
 
-func makeUserID(localpart ,server string) string {
+// returns all devices
+func (s *devicesStatements) selectAllAccounts(ctx context.Context) (accounts []authtypes.Device, err error) {
+	accounts = []authtypes.Device{}
+	rows, err := s.selectAllDevicesStmt.QueryContext(ctx)
+	if err != nil {
+		return
+	}
+
+	for rows.Next() {
+		var dev authtypes.Device
+		var localpart, name interface{}
+		err = rows.Scan(&dev.ID, &name, &dev.Created, &localpart)
+		if err != nil {
+			return
+		}
+		dev.UserID = makeUserID(localpart.(string), storage.SERVER_NAME)
+		accounts = append(accounts, dev)
+	}
+	return
+}
+
+func makeUserID(localpart, server string) string {
 	return fmt.Sprintf("@%s:%s", localpart, string(server))
 }

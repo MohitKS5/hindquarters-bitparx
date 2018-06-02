@@ -5,6 +5,7 @@ package authtypes
 type Device struct {
 	ID     string
 	UserID string
+	Created string
 	// The access_token granted to this device.
 	// This uniquely identifies the device from all other devices and clients.
 	AccessToken string

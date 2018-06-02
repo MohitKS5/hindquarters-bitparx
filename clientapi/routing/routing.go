@@ -26,6 +26,7 @@ func Setup(router *mux.Router, accountDB *accounts.Database, deviceDB *devices.D
 		"/login":    true,
 		"/register": true,
 		"/welcome":  true,
+		"/accounts": true,
 	}}
 	router.HandleFunc("/welcome", SayWelcome).Methods(http.MethodGet)
 	router.HandleFunc("/login", LoginHandler(accountDB, deviceDB, levelDB)).Methods(http.MethodPost)
@@ -37,6 +38,8 @@ func Setup(router *mux.Router, accountDB *accounts.Database, deviceDB *devices.D
 	router.HandleFunc("/levels/{levelname}", RouteLevelsHandler(levelDB, sql.NullBool{}, RequestLevelByLocalpart)).Methods(http.MethodPost)
 	router.HandleFunc("/levels/{levelname}/{localpart}", RouteLevelsHandler(levelDB, sql.NullBool{true, true}, SetLevelByLocalpart)).Methods(http.MethodPut)
 	router.HandleFunc("/levels/{levelname}/{localpart}", RouteLevelsHandler(levelDB, sql.NullBool{false, true}, SetLevelByLocalpart)).Methods(http.MethodDelete)
+	router.HandleFunc("/accounts", RouteHandlerAccounts(accountDB)).Methods(http.MethodPost)
+	router.HandleFunc("/devices", RouteHandlerDevices(deviceDB)).Methods(http.MethodPost)
 	router.Use(route.authMiddleware(deviceDB))
 }
 

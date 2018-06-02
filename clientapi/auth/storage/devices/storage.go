@@ -29,6 +29,11 @@ func NewDatabase(dataSourceName string, serverName string) (*Database, error) {
 	return &Database{db, d}, nil
 }
 
+// returns all devices
+func (d *Database) GetALlDevices(ctx context.Context) ([]authtypes.Device, error)  {
+	return d.devices.selectAllAccounts(ctx)
+}
+
 // GetDeviceByAccessToken returns the device matching the given access token.
 // Returns sql.ErrNoRows if no matching device was found.
 func (d *Database) GetDeviceByAccessToken(

@@ -24,6 +24,7 @@ import (
 	"encoding/json"
 	"github.com/bitparx/clientapi/auth/storage/devices"
 	"github.com/bitparx/clientapi/auth/storage/levels"
+	"database/sql"
 )
 
 const (
@@ -116,6 +117,7 @@ type registerResponse struct {
 	AccessToken string `json:"access_token"`
 	ServerName  string `json:"trade_server"`
 	DeviceID    string `json:"device_id"`
+	Levels		authtypes.Levels `json:"accountlevels"`
 }
 
 // recaptchaResponse represents the HTTP response from a Google Recaptcha server
@@ -436,12 +438,14 @@ func completeRegistration(
 		}
 	}
 
+	falseNullBool :=sql.NullBool{false,true}
 	return util.JSONResponse{
 		Code: http.StatusOK,
 		JSON: registerResponse{
 			UserID:      acc.UserID,
 			AccessToken: token,
 			ServerName:  acc.ServerName,
+			Levels: 	 authtypes.Levels{falseNullBool,falseNullBool},
 			DeviceID:    dev.ID,
 		},
 	}

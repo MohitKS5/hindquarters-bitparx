@@ -27,6 +27,34 @@ type deviceUpdateJSON struct {
 	DisplayName *string `json:"display_name"`
 }
 
+// return all active sessions (devices)
+func GetAllDevices(req *http.Request, deviceDB *devices.Database) *util.JSONResponse {
+	dev,err := deviceDB.GetALlDevices(req.Context())
+	if err!=nil {
+		return &util.JSONResponse{
+			Code: http.StatusInternalServerError,
+			JSON: httputil.LogThenError(req,err),
+		}
+	}
+
+	return &util.JSONResponse{
+		Code: http.StatusOK,
+		JSON: dev,
+	}
+}
+
+func RouteHandlerDevices(database *devices.Database) http.HandlerFunc  {
+	return func(writer http.ResponseWriter, request *http.Request) {
+		res := GetAllDevices(request, database)
+		err, ok := res.JSON.(*jsonerror.ParxError)
+		if  ok {
+			http.Error(writer, err.Err, res.Code)
+		} else {
+			json.NewEncoder(writer).Encode(res)
+		}
+	}
+}
+
 // GetDeviceByID handles /device/{deviceID}
 func GetDeviceByID(
 	req *http.Request, deviceDB *devices.Database, device *authtypes.Device,

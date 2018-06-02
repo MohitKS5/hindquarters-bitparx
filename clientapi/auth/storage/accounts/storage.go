@@ -28,12 +28,13 @@ func NewDatabase(dataSourceName string, serverName string) (*Database, error) {
 		return nil, err
 	}
 
-	a := accountsStatements{}
-	if err = a.prepare(db, serverName); err != nil {
-		return nil, err
-	}
 	p := profilesStatements{}
 	if err = p.prepare(db); err != nil {
+		return nil, err
+	}
+
+	a := accountsStatements{}
+	if err = a.prepare(db, serverName); err != nil {
 		return nil, err
 	}
 	return &Database{db, a, p,serverName}, nil
@@ -102,6 +103,10 @@ func (d *Database) CreateAccount(
 		return nil, err
 	}
 	return d.accounts.insertAccount(ctx, username, hash)
+}
+
+func (d *Database)GetAllAccounts(ctx context.Context) (acc []authtypes.Account, err error){
+	return d.accounts.selectAllAccounts(ctx)
 }
 
 func hashPassword(plaintext string) (hash string, err error) {

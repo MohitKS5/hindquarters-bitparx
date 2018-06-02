@@ -4,6 +4,8 @@ admin portal for Bitparx
 ### installation
 - install external packages: `go get <package name>`
   - gorilla/mux
+  - gorilla/handler
+  - gorilla/context
   - bcrypt
   - pq
   - satori

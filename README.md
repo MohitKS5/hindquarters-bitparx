@@ -2,6 +2,18 @@
 admin portal for Bitparx
 
 ### installation
+#### Database setup
+- make the databse with following config
+
+|param       | value      |
+| ---------- | ---------- |
+|HOST        | "localhost"|
+| PORT       | 5433       |
+|DB_USER     | "postgres" |
+|DB_PASSWORD | "bitparx"  |
+|DB_NAME     | "bitparx"  |  
+
+#### Go workspaceSetup
 - install external packages: `go get <package name>`
   - gorilla/mux
   - gorilla/handler

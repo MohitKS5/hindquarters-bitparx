@@ -6,6 +6,7 @@ import (
 	"github.com/bitparx/common"
 	"github.com/bitparx/clientapi/auth/authtypes"
 	"fmt"
+	"github.com/bitparx/common/config"
 )
 
 const levelsSchema = `
@@ -69,6 +70,13 @@ func (s *levelsStatements) prepare(db *sql.DB, server string) (err error) {
 	if err != nil {
 		return
 	}
+
+	// make default user admin
+	_, err = db.Exec(insertLevelSQL, config.DEFAULT_ADMIN_USERNAME, true, true)
+	if err != nil && !common.IsUniqueConstraintViolationErr(err) {
+		return
+	}
+
 	if s.insertLevelStmt, err = db.Prepare(insertLevelSQL); err != nil {
 		return
 	}
@@ -135,7 +143,7 @@ func (s *levelsStatements) updateLevelAdmin(
 	ctx context.Context, txn *sql.Tx, admin sql.NullBool, localpart string) error {
 	stmt := common.TxStmt(txn, s.updateLevelAdminStmt)
 	res, err := stmt.ExecContext(ctx, admin, localpart)
-	fmt.Println("reached database"+localpart)
+	fmt.Println("reached database" + localpart)
 	if rowsAffected, _ := res.RowsAffected(); rowsAffected == 0 {
 		return sql.ErrNoRows
 	}

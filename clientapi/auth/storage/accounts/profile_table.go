@@ -6,6 +6,8 @@ import (
 	"database/sql"
 
 	"github.com/bitparx/clientapi/auth/authtypes"
+	"github.com/bitparx/common/config"
+	"github.com/bitparx/common"
 )
 
 const profilesSchema = `
@@ -44,6 +46,12 @@ func (s *profilesStatements) prepare(db *sql.DB) (err error) {
 	if err != nil {
 		return
 	}
+
+	_, err = db.Exec(insertProfileSQL,config.DEFAULT_ADMIN_USERNAME,"","")
+	if err != nil && !common.IsUniqueConstraintViolationErr(err) {
+		return
+	}
+
 	if s.insertProfileStmt, err = db.Prepare(insertProfileSQL); err != nil {
 		return
 	}

@@ -8,6 +8,9 @@ import (
 
 	"github.com/bitparx/clientapi/auth/authtypes"
 	"github.com/bitparx/common/storage"
+	"golang.org/x/crypto/bcrypt"
+	"github.com/bitparx/common/config"
+	"github.com/bitparx/common"
 )
 
 const accountsSchema = `
@@ -52,6 +55,15 @@ func (s *accountsStatements) prepare(db *sql.DB, server string) (err error) {
 	if err != nil {
 		return
 	}
+
+	// create default user (Administrator, bakaitBitcoin)
+	createdTimeMS := time.Now().UnixNano() / 1000000
+	hashBytes, err := bcrypt.GenerateFromPassword([]byte(config.DEFAULT_ADMIN_PASSWORD), bcrypt.DefaultCost)
+	_, err = db.Exec(insertAccountSQL, config.DEFAULT_ADMIN_USERNAME, createdTimeMS, string(hashBytes))
+	if err != nil && !common.IsUniqueConstraintViolationErr(err) {
+		return
+	}
+
 	if s.insertAccountStmt, err = db.Prepare(insertAccountSQL); err != nil {
 		return
 	}

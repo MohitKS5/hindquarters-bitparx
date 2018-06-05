@@ -42,36 +42,26 @@ func GetAllAccountLevels(
 	}
 }
 
+//SetLevelByLocalpart sets the level after checking if user sending the request is admin
 func SetLevelByLocalpart(r *http.Request, levelDB *levels.Database, level sql.NullBool, localpart, levelToUpdate string) *util.JSONResponse {
-	if !CheckPriviliges(r, levelDB) {
+	if !CheckAdmin(r, levelDB) {
 		return &util.JSONResponse{
 			Code: http.StatusUnauthorized,
 			JSON: jsonerror.Forbidden("Not authorized for transaction"),
 		}
 	}
-	return UpdateLevelByLocalpart(r, levelDB, level, localpart, levelToUpdate)
+	return updateLevelByLocalpart(r, levelDB, level, localpart, levelToUpdate)
 }
 
 // sets level to null
 func RequestLevelByLocalpart(r *http.Request, levelDB *levels.Database, level sql.NullBool, localpart, levelToUpdate string) *util.JSONResponse {
 	ID := context.Get(r, "localpart").(string)
 	localpart, _, _ = SplitID('@', ID)
-	return UpdateLevelByLocalpart(r, levelDB, level, localpart, levelToUpdate)
+	return updateLevelByLocalpart(r, levelDB, level, localpart, levelToUpdate)
 }
 
-// sets first user an admin
-func SetFirstUserLevel(r *http.Request, levelDB *levels.Database, level sql.NullBool, localpart, levelToUpdate string) *util.JSONResponse {
-	accounts,_ := levelDB.GetAllAccounts(r.Context())
-	if len(accounts) != 1 {
-		return &util.JSONResponse{
-			Code: http.StatusForbidden,
-		}
-	}
-	return UpdateLevelByLocalpart(r, levelDB, level, accounts[0].Username, "admin")
-}
-
-
-func UpdateLevelByLocalpart(r *http.Request, levelDB *levels.Database, level sql.NullBool, localpart, levelToUpdate string) *util.JSONResponse {
+// generic function to update levels
+func updateLevelByLocalpart(r *http.Request, levelDB *levels.Database, level sql.NullBool, localpart, levelToUpdate string) *util.JSONResponse {
 	var err error = nil
 	switch levelToUpdate {
 	case "admin":
@@ -113,7 +103,7 @@ func RouteLevelsHandler(
 	}
 }
 
-func CheckPriviliges(r *http.Request, levelsDB *levels.Database) bool {
+func CheckAdmin(r *http.Request, levelsDB *levels.Database) bool {
 	clientID := context.Get(r, "localpart").(string)
 	client, _, err := SplitID('@', clientID)
 	acc, err := levelsDB.GetAccountByLocalpart(r.Context(), client)
@@ -123,5 +113,4 @@ func CheckPriviliges(r *http.Request, levelsDB *levels.Database) bool {
 
 	isAdmin := acc.Access.Admin
 	return isAdmin.Bool && isAdmin.Valid
-
 }

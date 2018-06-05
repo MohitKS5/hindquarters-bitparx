@@ -113,11 +113,11 @@ func newUserInteractiveResponse(
 }
 
 type registerResponse struct {
-	UserID      string `json:"user_id"`
-	AccessToken string `json:"access_token"`
-	ServerName  string `json:"trade_server"`
-	DeviceID    string `json:"device_id"`
-	Levels		authtypes.Levels `json:"accountlevels"`
+	UserID      string           `json:"user_id"`
+	AccessToken string           `json:"access_token"`
+	ServerName  string           `json:"trade_server"`
+	DeviceID    string           `json:"device_id"`
+	Levels      authtypes.Levels `json:"accountlevels"`
 }
 
 // recaptchaResponse represents the HTTP response from a Google Recaptcha server
@@ -240,6 +240,13 @@ func Register(
 	levelDB *levels.Database,
 	cfg *config.Bitparx,
 ) util.JSONResponse {
+
+	if cfg.Bitparx_Server.RegistrationDisabled {
+		return util.JSONResponse{
+			Code: http.StatusForbidden,
+			JSON: jsonerror.Forbidden("Signup has been disabled by admin"),
+		}
+	}
 
 	var r registerRequest
 	resErr := httputil.UnmarshalJSONRequest(req, &r)
@@ -438,14 +445,14 @@ func completeRegistration(
 		}
 	}
 
-	falseNullBool :=sql.NullBool{false,true}
+	falseNullBool := sql.NullBool{false, true}
 	return util.JSONResponse{
 		Code: http.StatusOK,
 		JSON: registerResponse{
 			UserID:      acc.UserID,
 			AccessToken: token,
 			ServerName:  acc.ServerName,
-			Levels: 	 authtypes.Levels{falseNullBool,falseNullBool},
+			Levels:      authtypes.Levels{falseNullBool, falseNullBool},
 			DeviceID:    dev.ID,
 		},
 	}
@@ -587,16 +594,56 @@ func RegisterAvailable(
 	}
 }
 
+// control registration
+var cfg = config.LoadConfig()
+
+func DisableRegistration(r *http.Request, set bool, levelDB *levels.Database) util.JSONResponse {
+	cfg.Bitparx_Server.RegistrationDisabled = set
+	return util.JSONResponse{
+		Code: http.StatusOK,
+	}
+}
+
 func RegisterHandler(accountDB *accounts.Database, deviceDB *devices.Database, levelDB *levels.Database) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Println(r.URL.Path)
-		cfg := config.LoadConfig()
 		res := Register(r, accountDB, deviceDB, levelDB, cfg)
 		err, ok := res.JSON.(*jsonerror.ParxError)
 		if ok {
 			http.Error(w, err.Err, res.Code)
 		} else {
 			json.NewEncoder(w).Encode(res)
+		}
+	}
+}
+
+func RegistrationHandler(levelDB *levels.Database) http.HandlerFunc {
+	return func(writer http.ResponseWriter, request *http.Request) {
+		fmt.Println(request.URL.Path)
+		var res util.JSONResponse
+		if !CheckAdmin(request, levelDB) {
+			res = util.JSONResponse{
+				Code: http.StatusUnauthorized,
+			}
+		}
+		switch request.Method {
+		case http.MethodGet:
+			res = util.JSONResponse{
+				Code: http.StatusOK,
+				JSON: cfg.Bitparx_Server.RegistrationDisabled,
+			}
+			json.NewEncoder(writer).Encode(res)
+			break
+		case http.MethodPut:
+			res = DisableRegistration(request, false, levelDB)
+			json.NewEncoder(writer).Encode(res)
+			break
+		case http.MethodDelete:
+			res = DisableRegistration(request, true, levelDB)
+			json.NewEncoder(writer).Encode(res)
+			break
+		default:
+			http.Error(writer, "Bad Method", http.StatusBadRequest)
 		}
 	}
 }

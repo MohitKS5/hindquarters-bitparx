@@ -26,12 +26,11 @@ func Setup(router *mux.Router, accountDB *accounts.Database, deviceDB *devices.D
 		"/login":    true,
 		"/register": true,
 		"/welcome":  true,
-		"/welcome/first":  true,
 	}}
 	router.HandleFunc("/welcome", SayWelcome).Methods(http.MethodGet)
 	router.HandleFunc("/login", LoginHandler(accountDB, deviceDB, levelDB)).Methods(http.MethodPost)
 	router.HandleFunc("/register", RegisterHandler(accountDB, deviceDB, levelDB)).Methods(http.MethodPost)
-	router.HandleFunc("/welcome/first", RouteLevelsHandler(levelDB, sql.NullBool{true, true}, SetFirstUserLevel)).Methods(http.MethodGet)
+	router.HandleFunc("/registration", RegistrationHandler(levelDB)).Methods(http.MethodPut, http.MethodDelete, http.MethodGet)
 
 	// routes with auth = true
 	router.HandleFunc("/logout", LogoutHandler(deviceDB)).Methods(http.MethodPost)
@@ -44,7 +43,8 @@ func Setup(router *mux.Router, accountDB *accounts.Database, deviceDB *devices.D
 	router.Use(route.authMiddleware(deviceDB))
 }
 
-// middleware for auth=true endpoints
+// middleware for auth=true endpoints, uses routeConfig and lets bypass the true mapped routes
+// adds localpart of client to the context with "localpart" key
 func (route routerConfig) authMiddleware(deviceDB *devices.Database) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {

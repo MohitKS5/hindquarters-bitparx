@@ -1,1 +1,1 @@
-package binanceapi
+package main

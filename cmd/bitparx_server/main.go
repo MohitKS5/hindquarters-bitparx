@@ -6,19 +6,21 @@ import (
 	"log"
 	"net/http"
 	"github.com/gorilla/handlers"
-	"github.com/bitparx/clientapi/routing"
-	"github.com/bitparx/clientapi"
+
+	// client api imports
+	clientApi "github.com/bitparx/clientapi"
+	clientRouting "github.com/bitparx/clientapi/routing"
 )
 
 func main() {
 	fmt.Println("Starting server at http://localhost:12345...")
 
 	//databse setup
-	accountDB, deviceDB, levelDB := clientapi.PostgresConnect()
+	accountDB, deviceDB, levelDB := clientApi.PostgresConnect()
 
 	// setting up router
 	router := mux.NewRouter()
-	routing.Setup(router, accountDB, deviceDB, levelDB)
+	clientRouting.Setup(router, accountDB, deviceDB, levelDB)
 
 	// starting server while setting cors for angular
 	log.Fatal(http.ListenAndServe(":12345", handlers.CORS(

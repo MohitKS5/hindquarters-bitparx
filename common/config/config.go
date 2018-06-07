@@ -44,11 +44,6 @@ type Bitparx struct {
 	}
 }
 
-const (
-	DEFAULT_ADMIN_USERNAME = "Administrator"
-	DEFAULT_ADMIN_PASSWORD = "BakaitBitcoin"
-)
-
 func LoadConfig() *Bitparx {
 	var allowedFlows = []authtypes.Flow{
 		{

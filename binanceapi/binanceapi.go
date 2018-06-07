@@ -7,11 +7,11 @@ import (
 	"io/ioutil"
 )
 
-func test() {
+func main() {
 	query := map[string]string{
-		"query_string": "symbol=LTCBTC&side=BUY&type=LIMIT&timeInForce=GTC&quantity=1&price=0.1&recvWindow=5000&",
+		"query_string": "symbol=LTCBTC&side=BUY&type=LIMIT&timeInForce=GTC&quantity=1&price=0.1&recvWindow=50000000&",
 	}
-	req, err := logic.RequestWithHeaders("https://api.binance.com/api/v3/order", query)
+	req, err := logic.NewRequestWithSignature("https://api.binance.com/api/v3/order/test", http.MethodPost, query)
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
@@ -21,5 +21,5 @@ func test() {
 	fmt.Println("response Status:", resp.Status)
 	fmt.Println("response Headers:", resp.Header)
 	body, _ := ioutil.ReadAll(resp.Body)
-	fmt.Println(string(body))
+	fmt.Println("response body: ",string(body))
 }

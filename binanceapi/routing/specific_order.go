@@ -15,6 +15,7 @@ func GetOrderById(orderID int64, symbol string) (res *rt.Order,err error) {
 	}
 	req,err := ap.NewRequestWithSignature(BASE_URL+"/api/v3/order",http.MethodGet, query)
 	if err!=nil{
+		log.Println(err)
 		return
 	}
 

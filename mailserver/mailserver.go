@@ -7,11 +7,12 @@ import (
 	"fmt"
 	"net"
 	"crypto/tls"
+	"github.com/bitparx/common/config"
 )
 
 func sendSingleMail(body string) {
-	from := "mohitkumarsingh907@gmail.com"
-	pass := "TripurariSingh"
+	from := config.EMAIL
+	pass := config.PASS
 	to := "admin@antaragni.in"
 	msg := "From: " + from + "\n" +
 		"To: " + to + "\n" +
@@ -32,9 +33,9 @@ func sendSingleMail(body string) {
 
 func sendMultiple() {
 
-	from := mail.Address{"", "mohitkumarsingh907@gmail.com"}
+	from := mail.Address{"", config.EMAIL}
 	to := mail.Address{"", "admin@antaragni.in"}
-	pass:="TripurariSingh"
+	pass:=config.PASS
 	subj := "This is the email subject"
 	body := "This is an example body.\n With two lines."
 

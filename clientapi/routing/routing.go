@@ -10,6 +10,7 @@ import (
 	"github.com/bitparx/clientapi/auth/storage/levels"
 	"database/sql"
 	"github.com/gorilla/context"
+	"github.com/bitparx/clientapi/Integration_apis/proxy_handles"
 )
 
 // config route
@@ -40,6 +41,11 @@ func Setup(router *mux.Router, accountDB *accounts.Database, deviceDB *devices.D
 	router.HandleFunc("/levels/{levelname}/{localpart}", RouteLevelsHandler(levelDB, sql.NullBool{false, true}, SetLevelByLocalpart)).Methods(http.MethodDelete)
 	router.HandleFunc("/accounts", RouteHandlerAccounts(accountDB)).Methods(http.MethodPost)
 	router.HandleFunc("/devices", RouteHandlerDevices(deviceDB)).Methods(http.MethodPost)
+
+	//binance api paths
+	binanceProxy  := proxy_handles.NewProxy("localhost:8080")
+	router.HandleFunc("/trade",binanceProxy.Handle)
+
 	router.Use(route.authMiddleware(deviceDB))
 }
 

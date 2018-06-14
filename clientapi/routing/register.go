@@ -17,7 +17,7 @@ import (
 	"github.com/bitparx/clientapi/auth"
 	"github.com/bitparx/clientapi/auth/authtypes"
 	"github.com/bitparx/clientapi/auth/storage/accounts"
-	"github.com/bitparx/clientapi/httputil"
+	"github.com/bitparx/clientapi/httputils"
 	"github.com/bitparx/common/jsonerror"
 	"github.com/bitparx/util"
 	"log"
@@ -249,7 +249,7 @@ func Register(
 	}
 
 	var r registerRequest
-	resErr := httputil.UnmarshalJSONRequest(req, &r)
+	resErr := httputils.UnmarshalJSONRequest(req, &r)
 	if resErr != nil {
 		return *resErr
 	}
@@ -327,7 +327,7 @@ func handleRegistrationFlow(
 		valid, err := isValidMacLogin(cfg, r.Username, r.Password, r.Admin, r.Auth.Mac)
 
 		if err != nil {
-			return httputil.LogThenError(req, err)
+			return httputils.LogThenError(req, err)
 		} else if !valid {
 			return util.MessageResponse(http.StatusForbidden, "HMAC incorrect")
 		}

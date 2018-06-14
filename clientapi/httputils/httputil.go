@@ -1,5 +1,5 @@
 
-package httputil
+package httputils
 
 import (
 	"encoding/json"

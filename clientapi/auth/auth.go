@@ -11,7 +11,7 @@ import (
 	"strings"
 
 	"github.com/bitparx/clientapi/auth/authtypes"
-	"github.com/bitparx/clientapi/httputil"
+	"github.com/bitparx/clientapi/httputils"
 	"github.com/bitparx/common/jsonerror"
 	"github.com/bitparx/util"
 )
@@ -62,7 +62,7 @@ func VerifyAccessToken(req *http.Request, deviceDB DeviceDatabase) (device *auth
 				JSON: jsonerror.UnknownToken("Unknown token"),
 			}
 		} else {
-			jsonErr := httputil.LogThenError(req, err)
+			jsonErr := httputils.LogThenError(req, err)
 			resErr = &jsonErr
 		}
 	}

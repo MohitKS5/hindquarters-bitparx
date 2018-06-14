@@ -5,7 +5,7 @@ import (
 
 	"github.com/bitparx/clientapi/auth"
 	"github.com/bitparx/clientapi/auth/storage/accounts"
-	"github.com/bitparx/clientapi/httputil"
+	"github.com/bitparx/clientapi/httputils"
 	"github.com/bitparx/common/jsonerror"
 	"github.com/bitparx/util"
 	"fmt"
@@ -52,7 +52,7 @@ func Login(
 		}
 	} else if req.Method == http.MethodPost {
 		var r passwordRequest
-		resErr := httputil.UnmarshalJSONRequest(req, &r)
+		resErr := httputils.UnmarshalJSONRequest(req, &r)
 		if resErr != nil {
 			return *resErr
 		}
@@ -85,7 +85,7 @@ func Login(
 
 		token, err := auth.GenerateAccessToken()
 		if err != nil {
-			httputil.LogThenError(req, err)
+			httputils.LogThenError(req, err)
 		}
 
 		//// TODO: Use the device ID in the request

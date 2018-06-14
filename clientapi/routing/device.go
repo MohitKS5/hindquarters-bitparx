@@ -7,7 +7,7 @@ import (
 
 	"github.com/bitparx/clientapi/auth/authtypes"
 	"github.com/bitparx/clientapi/auth/storage/devices"
-	"github.com/bitparx/clientapi/httputil"
+	"github.com/bitparx/clientapi/httputils"
 	"github.com/bitparx/common/jsonerror"
 	"github.com/bitparx/util"
 	"fmt"
@@ -33,7 +33,7 @@ func GetAllDevices(req *http.Request, deviceDB *devices.Database) *util.JSONResp
 	if err!=nil {
 		return &util.JSONResponse{
 			Code: http.StatusInternalServerError,
-			JSON: httputil.LogThenError(req,err),
+			JSON: httputils.LogThenError(req,err),
 		}
 	}
 
@@ -62,7 +62,7 @@ func GetDeviceByID(
 ) util.JSONResponse {
 	localpart, _, err := SplitID('@', device.UserID)
 	if err != nil {
-		return httputil.LogThenError(req, err)
+		return httputils.LogThenError(req, err)
 	}
 
 	ctx := req.Context()
@@ -73,7 +73,7 @@ func GetDeviceByID(
 			JSON: jsonerror.NotFound("Unknown device"),
 		}
 	} else if err != nil {
-		return httputil.LogThenError(req, err)
+		return httputils.LogThenError(req, err)
 	}
 
 	return util.JSONResponse{
@@ -91,14 +91,14 @@ func GetDevicesByLocalpart(
 ) util.JSONResponse {
 	localpart, _, err := SplitID('@', device.UserID)
 	if err != nil {
-		return httputil.LogThenError(req, err)
+		return httputils.LogThenError(req, err)
 	}
 
 	ctx := req.Context()
 	deviceList, err := deviceDB.GetDevicesByLocalpart(ctx, localpart)
 
 	if err != nil {
-		return httputil.LogThenError(req, err)
+		return httputils.LogThenError(req, err)
 	}
 
 	res := devicesJSON{}
@@ -130,7 +130,7 @@ func UpdateDeviceByID(
 
 	localpart, _, err := SplitID('@', device.UserID)
 	if err != nil {
-		return httputil.LogThenError(req, err)
+		return httputils.LogThenError(req, err)
 	}
 
 	ctx := req.Context()
@@ -141,7 +141,7 @@ func UpdateDeviceByID(
 			JSON: jsonerror.NotFound("Unknown device"),
 		}
 	} else if err != nil {
-		return httputil.LogThenError(req, err)
+		return httputils.LogThenError(req, err)
 	}
 
 	if dev.UserID != device.UserID {
@@ -156,11 +156,11 @@ func UpdateDeviceByID(
 	payload := deviceUpdateJSON{}
 
 	if err := json.NewDecoder(req.Body).Decode(&payload); err != nil {
-		return httputil.LogThenError(req, err)
+		return httputils.LogThenError(req, err)
 	}
 
 	if err := deviceDB.UpdateDevice(ctx, localpart, deviceID, payload.DisplayName); err != nil {
-		return httputil.LogThenError(req, err)
+		return httputils.LogThenError(req, err)
 	}
 
 	return util.JSONResponse{

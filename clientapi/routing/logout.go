@@ -5,7 +5,7 @@ import (
 
 	"github.com/bitparx/clientapi/auth/authtypes"
 	"github.com/bitparx/clientapi/auth/storage/devices"
-	"github.com/bitparx/clientapi/httputil"
+	"github.com/bitparx/clientapi/httputils"
 	"github.com/bitparx/common/jsonerror"
 	"github.com/bitparx/util"
 	"github.com/bitparx/clientapi/auth"
@@ -26,11 +26,11 @@ func Logout(
 
 	username, _, err := SplitID('@', device.UserID)
 	if err != nil {
-		return httputil.LogThenError(req, err)
+		return httputils.LogThenError(req, err)
 	}
 
 	if err := deviceDB.RemoveDevice(req.Context(), device.ID, username); err != nil {
-		return httputil.LogThenError(req, err)
+		return httputils.LogThenError(req, err)
 	}
 
 	return util.JSONResponse{
@@ -45,11 +45,11 @@ func LogoutAll(
 ) util.JSONResponse {
 	username, _, err := SplitID('@', device.UserID)
 	if err != nil {
-		return httputil.LogThenError(req, err)
+		return httputils.LogThenError(req, err)
 	}
 
 	if err := deviceDB.RemoveAllDevices(req.Context(), username); err != nil {
-		return httputil.LogThenError(req, err)
+		return httputils.LogThenError(req, err)
 	}
 
 	return util.JSONResponse{

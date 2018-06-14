@@ -4,7 +4,7 @@ import (
 	"github.com/bitparx/clientapi/auth/storage/accounts"
 	"net/http"
 	"github.com/bitparx/util"
-	"github.com/bitparx/clientapi/httputil"
+	"github.com/bitparx/clientapi/httputils"
 	"github.com/bitparx/common/jsonerror"
 	"encoding/json"
 )
@@ -15,7 +15,7 @@ func GetAllAccounts(req *http.Request, accountDB *accounts.Database) *util.JSONR
 	if err != nil {
 		return &util.JSONResponse{
 			Code: http.StatusInternalServerError,
-			JSON: httputil.LogThenError(req, err),
+			JSON: httputils.LogThenError(req, err),
 		}
 	}
 	return &util.JSONResponse{

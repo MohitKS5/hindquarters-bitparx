@@ -29,11 +29,11 @@ type deviceUpdateJSON struct {
 
 // return all active sessions (devices)
 func GetAllDevices(req *http.Request, deviceDB *devices.Database) *util.JSONResponse {
-	dev,err := deviceDB.GetALlDevices(req.Context())
-	if err!=nil {
+	dev, err := deviceDB.GetALlDevices(req.Context())
+	if err != nil {
 		return &util.JSONResponse{
 			Code: http.StatusInternalServerError,
-			JSON: httputils.LogThenError(req,err),
+			JSON: httputils.LogThenError(req, err),
 		}
 	}
 
@@ -43,15 +43,9 @@ func GetAllDevices(req *http.Request, deviceDB *devices.Database) *util.JSONResp
 	}
 }
 
-func RouteHandlerDevices(database *devices.Database) http.HandlerFunc  {
+func RouteHandlerDevices(database *devices.Database) http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
-		res := GetAllDevices(request, database)
-		err, ok := res.JSON.(*jsonerror.ParxError)
-		if  ok {
-			http.Error(writer, err.Err, res.Code)
-		} else {
-			json.NewEncoder(writer).Encode(res)
-		}
+		GetAllDevices(request, database).Encode(&writer)
 	}
 }
 

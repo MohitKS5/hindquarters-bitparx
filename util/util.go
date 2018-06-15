@@ -4,6 +4,9 @@ import (
 	"net/http"
 	"time"
 	"math/rand"
+	"encoding/json"
+	"fmt"
+	"log"
 )
 
 // JSONResponse represents an HTTP response which contains a JSON body.
@@ -16,6 +19,32 @@ type JSONResponse struct {
 	Headers map[string]string
 }
 
+func (res *JSONResponse) Encode(w *http.ResponseWriter) {
+	err, ok := res.JSON.(ParxError)
+	if ok {
+		http.Error(*w, err.Err, res.Code)
+	} else {
+		encerr := json.NewEncoder(*w).Encode(res)
+		if encerr!=nil{
+			log.Println(encerr)
+		}
+	}
+}
+
+// Error represents the "standard error response"
+type ParxError struct {
+	ErrCode string `json:"errcode"`
+	Err     string `json:"error"`
+}
+
+func (e *ParxError) Error() string {
+	return fmt.Sprintf("%s: %s", e.ErrCode, e.Err)
+}
+
+func LogThenError(err error, where ...string) error {
+	log.Println(where, ": ",err)
+	return err
+}
 
 // MessageResponse returns a JSONResponse with a 'message' key containing the given text.
 func MessageResponse(code int, msg string) JSONResponse {
@@ -38,7 +67,6 @@ func SetCORSHeaders(w http.ResponseWriter) {
 	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 	w.Header().Set("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept")
 }
-
 
 const alphanumerics = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 

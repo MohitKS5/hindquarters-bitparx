@@ -9,10 +9,10 @@ import (
 	"github.com/bitparx/binanceapi/utils"
 )
 
-func GetRecentTrades(symbol string, limit uint8) (res *[]rt.Trade, err error)  {
+func GetRecentTrades(symbol, limit string) (res *[]rt.Trade, err error)  {
 	query:= map[string]string{
 		"symbol": symbol,
-		"limit": string(limit),
+		"limit": limit,
 	}
 	req,err := ap.NewRequestWithHeader(BASE_URL+"/api/v1/trades",http.MethodGet, query)
 	if err!=nil{
@@ -33,10 +33,10 @@ func GetRecentTrades(symbol string, limit uint8) (res *[]rt.Trade, err error)  {
 	return
 }
 
-func GetAggregateTrades(symbol string, limit uint8, param ...utils.ReqParams) (res *[]rt.Trade, err error)  {
+func GetAggregateTrades(symbol, limit string, param ...utils.ReqParams) (res *[]rt.Trade, err error)  {
 	query:= map[string]string{
 		"symbol": symbol,
-		"limit": string(limit),
+		"limit": limit,
 	}
 	query = utils.MergeMaps(append(param,query)...)
 	req,err := ap.NewRequestWithHeader(BASE_URL+"/api/v1/aggTrades",http.MethodGet, query)

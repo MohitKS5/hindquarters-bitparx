@@ -8,9 +8,9 @@ import (
 	"encoding/json"
 )
 
-func GetOrderById(orderID int64, symbol string) (res *rt.Order,err error) {
+func GetOrderById(orderID , symbol string) (res *rt.Order,err error) {
 	query := map[string]string{
-		"orderId": string(orderID),
+		"orderId": orderID,
 		"symbol": symbol,
 	}
 	req,err := ap.NewRequestWithSignature(BASE_URL+"/api/v3/order",http.MethodGet, query)

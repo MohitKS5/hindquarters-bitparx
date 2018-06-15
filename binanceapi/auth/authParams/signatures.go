@@ -32,7 +32,7 @@ func NewRequestWithHeader(url, method string, query map[string]string) (req *htt
 
 // RequestWithWithHeaders returns a request with given url, querystring, method
 // along with generated signature and api-key header
-func NewRequestWithSignature(url, method string, query map[string]string) (*http.Request, error) {
+func NewRequestWithSignature(url, method string, query map[string]string) (req *http.Request,err error) {
 
 	querystring := generateQueryString(query)
 
@@ -48,10 +48,18 @@ func NewRequestWithSignature(url, method string, query map[string]string) (*http
 	// generate body
 	body := fmt.Sprintf("%s&signature=%s", querystring, string(generatedMAC))
 
-	req, err := http.NewRequest(method, url, bytes.NewBuffer([]byte(body)))
+	// check method use as query param if get and body if post
+	switch method {
+	case http.MethodGet:
+		req, err = http.NewRequest(method, url+"?"+body, nil)
+		break
+	default:
+		req, err = http.NewRequest(method, url, bytes.NewBuffer([]byte(body)))
+	}
 	if err != nil {
 		return nil, err
 	}
+	
 	req.Header.Set("X-MBX-APIKEY", cfg.API_KEY)
 
 	return req, nil

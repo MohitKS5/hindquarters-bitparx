@@ -10,7 +10,6 @@ import (
 	"github.com/bitparx/util"
 	"fmt"
 	"log"
-	"encoding/json"
 	"github.com/bitparx/clientapi/auth/storage/devices"
 	"github.com/bitparx/clientapi/auth/storage/levels"
 	"github.com/bitparx/clientapi/auth/authtypes"
@@ -32,11 +31,11 @@ type passwordRequest struct {
 }
 
 type loginResponse struct {
-	UserID      string `json:"user_id"`
-	AccessToken string `json:"access_token"`
-	Server      string `json:"server"`
-	DeviceID    string `json:"device_id"`
-	Levels		authtypes.Levels `json:"accountlevels"`
+	UserID      string           `json:"user_id"`
+	AccessToken string           `json:"access_token"`
+	Server      string           `json:"server"`
+	DeviceID    string           `json:"device_id"`
+	Levels      authtypes.Levels `json:"accountlevels"`
 }
 
 // Login implements GET and POST /login
@@ -99,7 +98,7 @@ func Login(
 			}
 		}
 
-		lev, err:= levelDB.GetAccountByLocalpart(req.Context(), username)
+		lev, err := levelDB.GetAccountByLocalpart(req.Context(), username)
 		if err != nil {
 			return util.JSONResponse{
 				Code: http.StatusInternalServerError,
@@ -113,8 +112,8 @@ func Login(
 				UserID:      acc.UserID,
 				AccessToken: token,
 				DeviceID:    dev.ID,
-				Levels: 	 lev.Access,
-				Server:		 acc.ServerName,
+				Levels:      lev.Access,
+				Server:      acc.ServerName,
 			},
 		}
 	}
@@ -131,13 +130,7 @@ func ParseUsernameParam(username string) (string, error) {
 
 func LoginHandler(accountDB *accounts.Database, deviceDB *devices.Database, levelDB *levels.Database) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		log.Println(r.URL.Path+"blah")
-		res := Login(r, accountDB, deviceDB, levelDB)
-		err, ok := res.JSON.(*jsonerror.ParxError)
-		if  ok {
-			http.Error(w, err.Err, res.Code)
-		} else {
-			json.NewEncoder(w).Encode(res)
-		}
+		log.Println(r.URL.Path + "blah")
+		Login(r, accountDB, deviceDB, levelDB).Encode(&w)
 	}
 }

@@ -21,7 +21,6 @@ import (
 	"github.com/bitparx/common/jsonerror"
 	"github.com/bitparx/util"
 	"log"
-	"encoding/json"
 	"github.com/bitparx/clientapi/auth/storage/devices"
 	"github.com/bitparx/clientapi/auth/storage/levels"
 	"database/sql"
@@ -607,40 +606,30 @@ func DisableRegistration(r *http.Request, set bool, levelDB *levels.Database) ut
 func RegisterHandler(accountDB *accounts.Database, deviceDB *devices.Database, levelDB *levels.Database) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Println(r.URL.Path)
-		res := Register(r, accountDB, deviceDB, levelDB, cfg)
-		err, ok := res.JSON.(*jsonerror.ParxError)
-		if ok {
-			http.Error(w, err.Err, res.Code)
-		} else {
-			json.NewEncoder(w).Encode(res)
-		}
+		Register(r, accountDB, deviceDB, levelDB, cfg).Encode(&w)
 	}
 }
 
 func RegistrationHandler(levelDB *levels.Database) http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
 		fmt.Println(request.URL.Path)
-		var res util.JSONResponse
 		if !CheckAdmin(request, levelDB) {
-			res = util.JSONResponse{
+			util.JSONResponse{
 				Code: http.StatusUnauthorized,
-			}
+			}.Encode(&writer)
 		}
 		switch request.Method {
 		case http.MethodGet:
-			res = util.JSONResponse{
+			util.JSONResponse{
 				Code: http.StatusOK,
 				JSON: cfg.Bitparx_Server.RegistrationDisabled,
-			}
-			json.NewEncoder(writer).Encode(res)
+			}.Encode(&writer)
 			break
 		case http.MethodPut:
-			res = DisableRegistration(request, false, levelDB)
-			json.NewEncoder(writer).Encode(res)
+			DisableRegistration(request, false, levelDB).Encode(&writer)
 			break
 		case http.MethodDelete:
-			res = DisableRegistration(request, true, levelDB)
-			json.NewEncoder(writer).Encode(res)
+			DisableRegistration(request, true, levelDB).Encode(&writer)
 			break
 		default:
 			http.Error(writer, "Bad Method", http.StatusBadRequest)

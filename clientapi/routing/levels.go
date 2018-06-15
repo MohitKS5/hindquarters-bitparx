@@ -7,7 +7,6 @@ import (
 	"github.com/bitparx/util"
 	"github.com/bitparx/common/jsonerror"
 	"log"
-	"encoding/json"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/context"
 )
@@ -93,13 +92,7 @@ func RouteLevelsHandler(
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		log.Println(r.URL.Path)
-		res := taskfunction(r, levelsDB, level, vars["localpart"], vars["levelname"])
-		err, ok := res.JSON.(*jsonerror.ParxError)
-		if ok {
-			http.Error(w, err.Err, res.Code)
-		} else {
-			json.NewEncoder(w).Encode(res)
-		}
+		taskfunction(r, levelsDB, level, vars["localpart"], vars["levelname"]).Encode(&w)
 	}
 }
 

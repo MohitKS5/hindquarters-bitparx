@@ -6,7 +6,6 @@ import (
 	"github.com/bitparx/clientapi/auth/storage/accounts"
 	"github.com/bitparx/clientapi/auth/storage/devices"
 	"github.com/bitparx/clientapi/auth"
-	"github.com/bitparx/common/jsonerror"
 	"github.com/bitparx/clientapi/auth/storage/levels"
 	"database/sql"
 	"github.com/gorilla/context"
@@ -27,6 +26,7 @@ func Setup(router *mux.Router, accountDB *accounts.Database, deviceDB *devices.D
 		"/login":    true,
 		"/register": true,
 		"/welcome":  true,
+		"/trade": true,
 	}}
 	router.HandleFunc("/welcome", SayWelcome).Methods(http.MethodGet)
 	router.HandleFunc("/login", LoginHandler(accountDB, deviceDB, levelDB)).Methods(http.MethodPost)
@@ -43,8 +43,8 @@ func Setup(router *mux.Router, accountDB *accounts.Database, deviceDB *devices.D
 	router.HandleFunc("/devices", RouteHandlerDevices(deviceDB)).Methods(http.MethodPost)
 
 	//binance api paths
-	binanceProxy  := proxy_handles.NewProxy("localhost:8080")
-	router.HandleFunc("/trade",binanceProxy.Handle)
+	binanceProxy := proxy_handles.NewProxy("http://localhost:8080")
+	router.PathPrefix("/trade").HandlerFunc(binanceProxy.Handle)
 
 	router.Use(route.authMiddleware(deviceDB))
 }
@@ -59,10 +59,7 @@ func (route routerConfig) authMiddleware(deviceDB *devices.Database) func(next h
 			} else {
 				dev, err := auth.VerifyAccessToken(request, deviceDB)
 				if err != nil {
-					myerr, ok := err.JSON.(*jsonerror.ParxError)
-					if ok {
-						http.Error(writer, myerr.Err, err.Code)
-					}
+					err.Encode(&writer)
 					return
 				} else {
 					context.Set(request, "localpart", dev.UserID)

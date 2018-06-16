@@ -32,13 +32,13 @@ func NewRequestWithHeader(url, method string, query map[string]string) (req *htt
 
 // RequestWithWithHeaders returns a request with given url, querystring, method
 // along with generated signature and api-key header
-func NewRequestWithSignature(url, method string, query map[string]string) (req *http.Request,err error) {
+func NewRequestWithSignature(url, method string, query map[string]string) (req *http.Request, err error) {
 
 	querystring := generateQueryString(query)
 
 	// add timestamp parameter
-	createdTimeMS := time.Now().UnixNano() / 1000000
-	querystring = fmt.Sprintf("%s&timestamp=%d", querystring, createdTimeMS)
+	createdTimeMS := int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Millisecond)
+	querystring = fmt.Sprintf("%s&timestamp=%d", querystring, createdTimeMS+timeLag)
 
 	// generate signature
 	mac := hmac.New(sha256.New, []byte(cfg.SECRET_KEY))
@@ -59,7 +59,7 @@ func NewRequestWithSignature(url, method string, query map[string]string) (req *
 	if err != nil {
 		return nil, err
 	}
-	
+
 	req.Header.Set("X-MBX-APIKEY", cfg.API_KEY)
 
 	return req, nil

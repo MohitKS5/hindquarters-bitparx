@@ -6,13 +6,10 @@ import (
 	rt "github.com/bitparx/binanceapi/rest_api/response_types"
 	"log"
 	"encoding/json"
+	"net/url"
 )
 
-func GetOrderById(orderID , symbol string) (res *rt.Order,err error) {
-	query := map[string]string{
-		"orderId": orderID,
-		"symbol": symbol,
-	}
+func GetOrderById(query url.Values) (res *rt.Order,err error) {
 	req,err := ap.NewRequestWithSignature(BASE_URL+"/api/v3/order",http.MethodGet, query)
 	if err!=nil{
 		log.Println(err)

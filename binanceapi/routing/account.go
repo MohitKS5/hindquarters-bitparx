@@ -8,11 +8,11 @@ import (
 	"github.com/bitparx/util"
 	"log"
 	"io/ioutil"
+	"net/url"
 )
 
 // Do send request
-func getAccount() (res *rt.Account, err error) {
-	query := map[string]string{"recvWindow": "500000"}
+func getAccount(query url.Values) (res *rt.Account, err error) {
 	req, err := authParams.NewRequestWithSignature(BASE_URL+"/api/v3/account", http.MethodGet,query)
 	client := &http.Client{}
 	resp, err := client.Do(req)

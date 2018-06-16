@@ -6,13 +6,9 @@ import (
 	"net/http"
 	"github.com/bitparx/binanceapi/utils"
 	"encoding/json"
+	"net/url"
 )
-func getMyTrades(symbol, recvWindow string, params ...utils.ReqParams) (res *[]rt.TradeV3, err error) {
-	query := map[string]string{
-		"symbol":     symbol,
-		"recvWindow": recvWindow,
-	}
-	utils.MergeMaps(query,params[0])
+func getMyTrades(query url.Values) (res *[]rt.TradeV3, err error) {
 	req, err := authParams.NewRequestWithSignature(BASE_URL+"/api/v3/myTrades", http.MethodGet, query)
 	client := &http.Client{}
 	resp,err := client.Do(req)

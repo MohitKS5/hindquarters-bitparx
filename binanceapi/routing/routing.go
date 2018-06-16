@@ -12,10 +12,16 @@ const (
 
 func Setup(router *mux.Router) {
 	s := router.PathPrefix("/trade").Subrouter()
-	s.HandleFunc("/me", test)
+	s.HandleFunc("/welcome", test)
 	s.HandleFunc("/account", serve(getAccount))
+	s.HandleFunc("/order/all", serve(ListAllOrders))
 	s.HandleFunc("/depth", serve(Depth))
 	s.HandleFunc("/exchange", serve(GetExchangeInfo))
+	s.HandleFunc("/mytrade", serve(getMyTrades))
+	s.HandleFunc("/order/open", serve(ListOpenOrders))
+	s.HandleFunc("/order", serve(GetOrderById))
+	s.HandleFunc("/reports/aggregate", serve(GetAggregateTrades))
+	s.HandleFunc("/reports/recent", serve(GetRecentTrades))
 	router.Use(loggerMiddleware)
 }
 
@@ -27,5 +33,5 @@ func loggerMiddleware(next http.Handler) http.Handler {
 }
 
 func test(w http.ResponseWriter, r *http.Request) {
-
+	w.Write([]byte("hello there"))
 }

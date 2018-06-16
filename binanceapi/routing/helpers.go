@@ -5,6 +5,7 @@ import (
 	"reflect"
 	"github.com/bitparx/common/jsonerror"
 	"net/http"
+	"net/url"
 )
 
 type bnbreq struct {
@@ -29,20 +30,17 @@ func wrap(args []reflect.Value) (r bnbreq) {
 }
 
 // invoke an anonymous function
-func Invoke(fn interface{}, args ...string) ([]reflect.Value) {
+func Invoke(fn interface{}, args url.Values) ([]reflect.Value) {
 	v := reflect.ValueOf(fn)
-	rargs := make([]reflect.Value, len(args))
-	for i, a := range args {
-		rargs[i] = reflect.ValueOf(a)
-	}
+	rargs := []reflect.Value{reflect.ValueOf(args)}
 	res := v.Call(rargs)
 	return res
 }
 
 // serve
-func serve(fn interface{}, args ...string) http.HandlerFunc {
+func  serve(fn interface{}) http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
-		r := wrap(Invoke(fn, args...))
+		r := wrap(Invoke(fn, request.URL.Query()))
 		r.jsonres.Encode(&writer)
 	}
 }

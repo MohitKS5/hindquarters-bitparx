@@ -5,13 +5,10 @@ import (
 	"encoding/json"
 	authp "github.com/bitparx/binanceapi/auth/authParams"
 	rt "github.com/bitparx/binanceapi/rest_api/response_types"
+	"net/url"
 )
 
-func ListAllOrders(symbol, recWindow string) (res *[]rt.Order, err error) {
-	query := map[string]string{
-		"symbol":    symbol,
-		"recWindow": recWindow,
-	}
+func ListAllOrders(query url.Values) (res *[]rt.Order, err error) {
 	req, err := authp.NewRequestWithSignature(BASE_URL+"/api/v3/allOrders", http.MethodGet, query)
 	client := http.Client{}
 	resp, err := client.Do(req)

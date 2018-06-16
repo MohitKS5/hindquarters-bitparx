@@ -7,11 +7,11 @@ import (
 	"encoding/json"
 	"log"
 	"io/ioutil"
+	"net/url"
 )
 
 // Do send request
-func Depth() (res *rt.DepthResponse, err error) {
-	query := map[string]string{"symbol": "BNBBTC", "limit": "5"}
+func Depth(query url.Values) (res *rt.DepthResponse, err error) {
 	req, err := authParams.NewRequestWithHeader(BASE_URL+"/api/v1/depth", http.MethodGet, query)
 	client := &http.Client{}
 	resp, err := client.Do(req)

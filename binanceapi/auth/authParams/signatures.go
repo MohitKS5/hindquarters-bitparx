@@ -36,9 +36,12 @@ func NewRequestWithHeader(url, method string, query url.Values) (req *http.Reque
 // along with generated signature and api-key header
 func NewRequestWithSignature(url, method string, query url.Values) (req *http.Request, err error) {
 
-	//query.Add("recvWindow", "5000")
-	// add timestamp parameter
-	createdTimeMS := time.Unix(int64(time.Nanosecond)*time.Now().UnixNano()/int64(time.Millisecond), 0)
+	if len(query.Get("recvWindow")) == 0 {
+		query.Add("recvWindow", "5000")
+	}
+
+	// add timestamp(millisecond) parameter
+	createdTimeMS := time.Unix(time.Now().UnixNano()/1000000, 0)
 	query.Add("timestamp", strconv.FormatInt(createdTimeMS.Add(timeLag).Unix(), 10))
 
 	// generate signature

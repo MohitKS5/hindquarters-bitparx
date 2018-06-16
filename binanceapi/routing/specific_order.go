@@ -9,17 +9,17 @@ import (
 	"net/url"
 )
 
-func GetOrderById(query url.Values) (res *rt.Order,err error) {
-	req,err := ap.NewRequestWithSignature(BASE_URL+"/api/v3/order",http.MethodGet, query)
-	if err!=nil{
+func GetOrderById(query url.Values) (res *rt.Order, err error) {
+	req, err := ap.NewRequestWithSignature(BASE_URL+"/api/v3/order", http.MethodGet, query)
+	if err != nil {
 		log.Println(err)
 		return
 	}
 
-	client:=&http.Client{}
-	resp,err:=client.Do(req)
-	if err!=nil || resp.StatusCode != http.StatusOK{
-		log.Println("error: ",err, "\nresp",resp.Status)
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil || resp.StatusCode != http.StatusOK {
+		log.Println("error: ", err, "\nresp", resp.Status)
 		return
 	}
 

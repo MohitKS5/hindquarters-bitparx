@@ -38,10 +38,9 @@ func Invoke(fn interface{}, args url.Values) ([]reflect.Value) {
 }
 
 // serve
-func  serve(fn interface{}) http.HandlerFunc {
+func serve(fn interface{}) http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
 		r := wrap(Invoke(fn, request.URL.Query()))
 		r.jsonres.Encode(&writer)
 	}
 }
-

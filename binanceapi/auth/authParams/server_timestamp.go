@@ -1,20 +1,19 @@
 package authParams
 
-
 import (
 	"net/http"
 	"encoding/json"
 	"time"
-	"github.com/bitparx/binanceapi/routing"
+	cfg "github.com/bitparx/common/config"
 )
 
 type server struct {
 	ServerTime int64
 }
 
-var timeLag = CalcTimeLag(routing.BASE_URL)
+var timeLag = CalcTimeLag(cfg.BINANCE_REST_URL)
 
-func CalcTimeLag(url string) int64 {
+func CalcTimeLag(url string) time.Duration {
 	resp, err := http.Get(url + "/api/v1/time")
 	if err != nil {
 		return 0
@@ -22,8 +21,9 @@ func CalcTimeLag(url string) int64 {
 	defer resp.Body.Close()
 	res := new(server)
 	err = json.NewDecoder(resp.Body).Decode(res)
+	serverTime := time.Unix(res.ServerTime, 0)
 
 	// add timestamp parameter
-	myTimeMS := int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Millisecond)
-	return res.ServerTime - myTimeMS
+	myTimeMS := time.Unix(int64(time.Nanosecond)*time.Now().UnixNano()/int64(time.Millisecond), 0)
+	return serverTime.Sub(myTimeMS)
 }

@@ -44,6 +44,10 @@ type Bitparx struct {
 	}
 }
 
+const (
+	BINANCE_REST_URL = "https://api.binance.com"
+)
+
 func LoadConfig() *Bitparx {
 	var allowedFlows = []authtypes.Flow{
 		{

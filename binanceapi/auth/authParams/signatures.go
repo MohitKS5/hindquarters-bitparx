@@ -9,6 +9,7 @@ import (
 	"time"
 	"encoding/hex"
 	"net/url"
+	"strconv"
 )
 
 // Returns a request with given url, method, querystring along with
@@ -36,8 +37,8 @@ func NewRequestWithHeader(url, method string, query url.Values) (req *http.Reque
 func NewRequestWithSignature(url, method string, query url.Values) (req *http.Request, err error) {
 
 	// add timestamp parameter
-	createdTimeMS := int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Millisecond)
-	query.Add("timestamp", string(createdTimeMS+timeLag))
+	createdTimeMS := time.Unix(int64(time.Nanosecond)*time.Now().UnixNano()/int64(time.Millisecond), 0)
+	query.Add("timestamp", strconv.FormatInt(createdTimeMS.Add(timeLag).Unix(), 10))
 
 	// generate signature
 	mac := hmac.New(sha256.New, []byte(cfg.SECRET_KEY))
@@ -45,9 +46,9 @@ func NewRequestWithSignature(url, method string, query url.Values) (req *http.Re
 	generatedMAC := hex.EncodeToString(mac.Sum(nil))
 
 	// generate body
-	query.Add("signature", string(generatedMAC))
+	query.Add("signature", generatedMAC)
+	//query.Add("recvWindow","5000000")
 	body := query.Encode()
-
 	// check method use as query param if get and body if post
 	switch method {
 	case http.MethodGet:

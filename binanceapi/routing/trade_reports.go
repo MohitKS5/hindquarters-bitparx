@@ -6,22 +6,21 @@ import (
 	"net/http"
 	"log"
 	"encoding/json"
-	"github.com/bitparx/binanceapi/utils"
 	"net/url"
 )
 
-func GetRecentTrades(query url.Values) (res *[]rt.Trade, err error)  {
-	req,err := ap.NewRequestWithHeader(BASE_URL+"/api/v1/trades",http.MethodGet, query)
-	if err!=nil{
-		log.Println("error at request: ",err)
+func GetRecentTrades(query url.Values) (res *[]rt.Trade, err error) {
+	req, err := ap.NewRequestWithHeader(BASE_URL+"/api/v1/trades", http.MethodGet, query)
+	if err != nil {
+		log.Println("error at request: ", err)
 		return
 	}
 
-	client:=&http.Client{}
-	resp,err:=client.Do(req)
+	client := &http.Client{}
+	resp, err := client.Do(req)
 
-	if err!=nil || resp.StatusCode != http.StatusOK{
-		log.Println("error: ",err, "\nresp",resp.Status)
+	if err != nil || resp.StatusCode != http.StatusOK {
+		log.Println("error: ", err, "\nresp", resp.Status)
 		return
 	}
 
@@ -30,18 +29,18 @@ func GetRecentTrades(query url.Values) (res *[]rt.Trade, err error)  {
 	return
 }
 
-func GetAggregateTrades(query url.Values) (res *[]rt.Trade, err error)  {
-	req,err := ap.NewRequestWithHeader(BASE_URL+"/api/v1/aggTrades",http.MethodGet, query)
-	if err!=nil{
-		log.Println("error at request: ",err)
+func GetAggregateTrades(query url.Values) (res *[]rt.Trade, err error) {
+	req, err := ap.NewRequestWithHeader(BASE_URL+"/api/v1/aggTrades", http.MethodGet, query)
+	if err != nil {
+		log.Println("error at request: ", err)
 		return
 	}
 
-	client:=&http.Client{}
-	resp,err:=client.Do(req)
+	client := &http.Client{}
+	resp, err := client.Do(req)
 
-	if err!=nil || resp.StatusCode != http.StatusOK{
-		log.Println("error: ",err, "\nresp",resp.Status)
+	if err != nil || resp.StatusCode != http.StatusOK {
+		log.Println("error: ", err, "\nresp", resp.Status)
 		return
 	}
 

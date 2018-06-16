@@ -9,11 +9,12 @@ import (
 	"log"
 	"io/ioutil"
 	"net/url"
+	"errors"
 )
 
 // Do send request
 func getAccount(query url.Values) (res *rt.Account, err error) {
-	req, err := authParams.NewRequestWithSignature(BASE_URL+"/api/v3/account", http.MethodGet,query)
+	req, err := authParams.NewRequestWithSignature(BASE_URL+"/api/v3/account", http.MethodGet, query)
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
@@ -25,7 +26,7 @@ func getAccount(query url.Values) (res *rt.Account, err error) {
 		bodyBytes, _ := ioutil.ReadAll(resp.Body)
 		bodyString := string(bodyBytes)
 		log.Println(bodyString)
-		return
+		return nil, errors.New(bodyString)
 	}
 	defer resp.Body.Close()
 	res = new(rt.Account)

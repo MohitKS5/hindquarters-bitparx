@@ -4,10 +4,11 @@ import (
 	"github.com/gorilla/mux"
 	"net/http"
 	"log"
+	"github.com/bitparx/common/config"
 )
 
 const (
-	BASE_URL = "https://api.binance.com"
+	BASE_URL = config.BINANCE_REST_URL
 )
 
 func Setup(router *mux.Router) {

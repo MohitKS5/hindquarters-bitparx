@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"log"
 	"github.com/bitparx/common/config"
+	"strings"
 )
 
 const (
@@ -12,7 +13,7 @@ const (
 )
 
 func Setup(router *mux.Router) {
-	s := router.PathPrefix("/trade").Subrouter()
+	s := router.Host(strings.Split(config.CLIENT_API_URL, ":")[0]).PathPrefix("/trade").Subrouter()
 	s.HandleFunc("/welcome", test)
 	s.HandleFunc("/account", serve(getAccount))
 	s.HandleFunc("/order/all", serve(ListAllOrders))
@@ -23,12 +24,16 @@ func Setup(router *mux.Router) {
 	s.HandleFunc("/order", serve(GetOrderById))
 	s.HandleFunc("/reports/aggregate", serve(GetAggregateTrades))
 	s.HandleFunc("/reports/recent", serve(GetRecentTrades))
-	router.Use(loggerMiddleware)
+	router.Use(CheckPortMiddleware)
 }
 
-func loggerMiddleware(next http.Handler) http.Handler {
+func CheckPortMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 		log.Println("route: ", request.URL.Path)
+		if request.Host != config.CLIENT_API_URL {
+			http.Error(writer, "404 page not found", http.StatusNotFound)
+			return
+		}
 		next.ServeHTTP(writer, request)
 	})
 }

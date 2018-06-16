@@ -14,7 +14,7 @@ func (p *Prox) customHandle(w http.ResponseWriter, r *http.Request) {
 	p.proxy.Transport = &logTransport{}
 }
 
-type logTransport struct {}
+type logTransport struct{}
 
 func (t *logTransport) RoundTrip(request *http.Request) (*http.Response, error) {
 
@@ -24,7 +24,6 @@ func (t *logTransport) RoundTrip(request *http.Request) (*http.Response, error) 
 
 	fmt.Println("Request body : ", rdr1)
 	request.Body = rdr2
-
 
 	response, err := http.DefaultTransport.RoundTrip(request)
 	if err != nil {

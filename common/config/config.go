@@ -46,6 +46,7 @@ type Bitparx struct {
 
 const (
 	BINANCE_REST_URL = "https://api.binance.com"
+	CLIENT_API_URL = "localhost:12345"
 )
 
 func LoadConfig() *Bitparx {

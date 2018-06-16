@@ -19,7 +19,7 @@ type JSONResponse struct {
 	Headers map[string]string
 }
 
-func (res *JSONResponse) Encode(w *http.ResponseWriter) {
+func (res JSONResponse) Encode(w *http.ResponseWriter) {
 	err, ok := res.JSON.(ParxError)
 	if ok {
 		http.Error(*w, err.Err, res.Code)

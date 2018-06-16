@@ -18,6 +18,6 @@ func main() {
 
 	// starting server while setting cors for angular
 	log.Fatal(http.ListenAndServe(":8080", handlers.CORS(
-		handlers.AllowedMethods([]string{"GET", "POST", "PUT", "HEAD","DELETE"}),
-		handlers.AllowedOrigins([]string{"*"}))(router)))
+		handlers.AllowedMethods([]string{"GET", "POST", "PUT", "HEAD", "DELETE"}),
+		handlers.AllowedOrigins([]string{"http://localhost:12345"}))(router)))
 }

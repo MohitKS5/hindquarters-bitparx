@@ -4,7 +4,6 @@ import (
 	"net/url"
 	"net/http/httputil"
 	"net/http"
-	"log"
 )
 
 type Prox struct {

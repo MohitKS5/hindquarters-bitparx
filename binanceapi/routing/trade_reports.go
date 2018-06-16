@@ -16,11 +16,9 @@ func GetRecentTrades(query url.Values) (res *[]rt.Trade, err error) {
 		return
 	}
 
-	client := &http.Client{}
-	resp, err := client.Do(req)
+	resp, err := DialBnb(req)
 
-	if err != nil || resp.StatusCode != http.StatusOK {
-		log.Println("error: ", err, "\nresp", resp.Status)
+	if err != nil {
 		return
 	}
 
@@ -36,13 +34,11 @@ func GetAggregateTrades(query url.Values) (res *[]rt.Trade, err error) {
 		return
 	}
 
-	client := &http.Client{}
-	resp, err := client.Do(req)
-
-	if err != nil || resp.StatusCode != http.StatusOK {
-		log.Println("error: ", err, "\nresp", resp.Status)
+	resp, err := DialBnb(req)
+	if err != nil {
 		return
 	}
+	defer resp.Body.Close()
 
 	res = new([]rt.Trade)
 	err = json.NewDecoder(resp.Body).Decode(res)

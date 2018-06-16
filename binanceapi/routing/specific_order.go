@@ -16,13 +16,10 @@ func GetOrderById(query url.Values) (res *rt.Order, err error) {
 		return
 	}
 
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil || resp.StatusCode != http.StatusOK {
-		log.Println("error: ", err, "\nresp", resp.Status)
+	resp, err := DialBnb(req)
+	if err != nil {
 		return
 	}
-
 	res = new(rt.Order)
 	err = json.NewDecoder(resp.Body).Decode(res)
 	return

@@ -10,8 +10,11 @@ import (
 
 func getMyTrades(query url.Values) (res *[]rt.TradeV3, err error) {
 	req, err := authParams.NewRequestWithSignature(BASE_URL+"/api/v3/myTrades", http.MethodGet, query)
-	client := &http.Client{}
-	resp, err := client.Do(req)
+	resp, err := DialBnb(req)
+	if err != nil {
+		return nil, err
+	}
+
 	defer resp.Body.Close()
 
 	res = new([]rt.TradeV3)

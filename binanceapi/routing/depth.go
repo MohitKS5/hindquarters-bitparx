@@ -5,25 +5,15 @@ import (
 	"net/http"
 	"github.com/bitparx/binanceapi/auth/authParams"
 	"encoding/json"
-	"log"
-	"io/ioutil"
 	"net/url"
 )
 
 // Do send request
 func Depth(query url.Values) (res *rt.DepthResponse, err error) {
 	req, err := authParams.NewRequestWithHeader(BASE_URL+"/api/v1/depth", http.MethodGet, query)
-	client := &http.Client{}
-	resp, err := client.Do(req)
+	resp, err := DialBnb(req)
 	if err != nil {
 		return nil, err
-	}
-
-	if resp.StatusCode != http.StatusOK {
-		bodyBytes, _ := ioutil.ReadAll(resp.Body)
-		bodyString := string(bodyBytes)
-		log.Println(bodyString)
-		return
 	}
 	defer resp.Body.Close()
 

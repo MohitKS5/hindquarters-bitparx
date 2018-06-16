@@ -6,10 +6,28 @@ import (
 	"github.com/bitparx/common/jsonerror"
 	"net/http"
 	"net/url"
+	"io/ioutil"
+	"errors"
 )
 
 type bnbreq struct {
 	jsonres util.JSONResponse
+}
+
+func DialBnb(req *http.Request) (*http.Response, error) {
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, util.LogThenError(err, "request")
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		defer resp.Body.Close()
+		bodyBytes, _ := ioutil.ReadAll(resp.Body)
+		bodyString := string(bodyBytes)
+		return nil, util.LogThenError(errors.New(bodyString),"error: ")
+	}
+	return resp, err
 }
 
 // make json response

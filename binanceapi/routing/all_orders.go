@@ -10,8 +10,7 @@ import (
 
 func ListAllOrders(query url.Values) (res *[]rt.Order, err error) {
 	req, err := authp.NewRequestWithSignature(BASE_URL+"/api/v3/allOrders", http.MethodGet, query)
-	client := http.Client{}
-	resp, err := client.Do(req)
+	resp, err := DialBnb(req)
 	if err != nil {
 		return nil, err
 	}
